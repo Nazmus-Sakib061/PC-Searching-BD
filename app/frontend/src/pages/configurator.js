@@ -138,6 +138,44 @@ function BuildConfiguratorPage() {
         <div className="fixed bottom-12 right-12 h-[2px] w-80 rotate-[18deg] bg-gradient-to-r from-blue-500 to-emerald-400 opacity-60 blur-sm" />
 
         <div className="mx-auto max-w-7xl rounded-[28px] border border-white/10 bg-white/5 p-5 shadow-[0_0_50px_rgba(0,180,255,0.08)] backdrop-blur-xl md:p-8 lg:p-10">
+          <nav className="flex items-center justify-between border-b border-white/10 px-0 pb-5 lg:pb-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-emerald-400 text-xl font-black text-black shadow-[0_0_25px_rgba(0,255,180,0.35)]">
+                C
+              </div>
+              <h1 className="text-xl font-black tracking-wide">
+                PC MAKER{" "}
+                <span className="bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                  BD
+                </span>
+              </h1>
+            </div>
+
+            <div className="hidden items-center gap-8 text-sm font-medium text-gray-400 md:flex">
+              <a href="/" className="transition hover:text-white">
+                Home
+              </a>
+              <a href="/configurator" className="border-b-2 border-cyan-500 pb-1 text-white">
+                Build PC
+              </a>
+              <a href="/comparison-results" className="transition hover:text-white">
+                Compare
+              </a>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <button className="text-sm font-medium transition hover:text-cyan-400">
+                Login
+              </button>
+              <a
+                href="/comparison-results"
+                className="rounded-xl bg-gradient-to-r from-blue-500 to-emerald-400 px-6 py-3 text-sm font-bold text-black transition hover:scale-105"
+              >
+                Compare
+              </a>
+            </div>
+          </nav>
+
           <div className="mb-8 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[4px] text-cyan-400">Build Configurator</p>
