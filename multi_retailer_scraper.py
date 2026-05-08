@@ -5,162 +5,63 @@ import json
 import time
 import logging
 from urllib.parse import urljoin
-import psycopg2 # Assuming psycopg2 for PostgreSQL interaction
-from psycopg2 import sql # For safe SQL query construction
+import sqlite3
 
 # --- Configuration ---
-BASE_URL = "https://www.startech.com.bd" # Base URL for Star Tech
-CPU_CATEGORY_URL_ST = "https://www.startech.com.bd/processor-component" # Star Tech CPU URL
-MAX_PAGES_TO_SCRAPE = 10
+BASE_URL = "https://www.startech.com.bd"
+CPU_CATEGORY_URL_ST = "https://www.startech.com.bd/component/processor"
+RYANS_CPU_CATEGORY_URL = "https://www.ryanscomputers.com/category/desktop-component-processor"
+TECHLAND_CPU_CATEGORY_URL = "https://www.techlandbd.com/shop-pc-components-processor"
+MAX_PAGES_TO_SCRAPE = 3 # Reduced for testing
 REQUEST_DELAY_SECONDS = 3
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    'Accept-Language': 'en-US,en;q=0.9',
-    'Accept-Encoding': 'gzip, deflate, br',
-    'Connection': 'keep-alive',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
 }
 
-# --- Ryans Computers Specifics ---
-RYANS_BASE_URL = "https://www.ryanscomputers.com"
-RYANS_CPU_CATEGORY_URL = "https://www.ryanscomputers.com/categories/processor-cpu"
 RYANS_HEADERS = HEADERS
-
-# --- Tech Land BD Specifics ---
-TECHLAND_BASE_URL = "https://www.techlandbd.com"
-TECHLAND_CPU_CATEGORY_URL = "https://www.techlandbd.com/cpu"
 TECHLAND_HEADERS = HEADERS
 
-# --- Database Connection Details ---
-# !!! IMPORTANT: Replace with your actual database credentials.
-# !!! NEVER commit these directly into code in a real project. Use environment variables or a config file.
-DB_CONFIG = {
-    "database": "pc_builder_db",
-    "user": "your_db_user",
-    "password": "your_db_password",
-    "host": "localhost",
-    "port": "5432",
-}
-
-# --- Global DB Connection ---
-DB_CONN = None
+# --- Database Connection ---
+DB_NAME = "pc_builder_db.sqlite"
 
 def get_db_connection():
-    """Establishes and returns a PostgreSQL database connection."""
-    global DB_CONN
-    if DB_CONN is None:
-        try:
-            DB_CONN = psycopg2.connect(**DB_CONFIG)
-            logging.info("Database connection established successfully.")
-        except psycopg2.OperationalError as e:
-            logging.error(f"Database connection failed: {e}")
-            # Decide on behavior: exit, retry, or proceed without DB
-            # For now, we'll return None and let save_to_db handle it.
-            DB_CONN = None
-    return DB_CONN
-
-# --- Helper Function to get or create component ---
-def get_or_create_component(cursor, product_data, component_type='CPU'):
-    """
-    Checks if a component exists based on URL or a unique identifier.
-    If it exists, returns its ID. If not, inserts it and returns the new ID.
-    This is a simplified example; real-world might need more robust matching.
-    """
-    component_id = None
-    unique_identifier = product_data.get('url') # Use URL as primary identifier for uniqueness
-
-    if not unique_identifier:
-        logging.warning(f"Cannot identify component '{product_data.get('name')}' without a URL for lookup/creation.")
-        return None
-
+    """Establishes and returns a SQLite database connection."""
     try:
-        # Check if component exists by URL
-        cursor.execute(
-            sql.SQL("SELECT component_id FROM components WHERE url = %s"),
-            [unique_identifier]
-        )
-        result = cursor.fetchone()
-
-        if result:
-            component_id = result[0]
-            logging.info(f"Component '{product_data.get('name')}' found (ID: {component_id}). Will update details.")
-            # Update existing component details if they changed
-            cursor.execute("""
-                UPDATE components
-                SET name = %s, brand = %s, model = %s, price = %s, availability = %s,
-                    socket_type = %s, tdps = %s, cores = %s, threads = %s,
-                    base_clock_ghz = %s, boost_clock_ghz = %s, integrated_graphics_support = %s, cache = %s,
-                    component_type = %s, url = %s -- Update URL just in case
-                WHERE component_id = %s
-            """, (
-                product_data.get('name'), product_data.get('brand'), product_data.get('model'),
-                product_data.get('price'), product_data.get('availability'),
-                product_data.get('socket_type'), product_data.get('tdps'), product_data.get('cores'),
-                product_data.get('threads'), product_data.get('base_clock_ghz'),
-                product_data.get('boost_clock_ghz'), product_data.get('integrated_graphics_support'),
-                product_data.get('cache'),
-                component_type, unique_identifier, component_id
-            ))
-        else:
-            logging.info(f"Component '{product_data.get('name')}' not found. Creating new component.")
-            # Insert new component
-            cursor.execute("""
-                INSERT INTO components (name, brand, model, price, availability,
-                                        socket_type, tdps, cores, threads,
-                                        base_clock_ghz, boost_clock_ghz, integrated_graphics_support, cache,
-                                        component_type, url)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING component_id
-            """, (
-                product_data.get('name'), product_data.get('brand'), product_data.get('model'),
-                product_data.get('price'), product_data.get('availability'),
-                product_data.get('socket_type'), product_data.get('tdps'), product_data.get('cores'),
-                product_data.get('threads'), product_data.get('base_clock_ghz'),
-                product_data.get('boost_clock_ghz'), product_data.get('integrated_graphics_support'),
-                product_data.get('cache'),
-                component_type, unique_identifier
-            ))
-            component_id = cursor.fetchone()[0]
-        
-        return component_id
-
-    except Exception as e:
-        logging.error(f"Error in get_or_create_component for {product_data.get('name')}: {e}")
+        conn = sqlite3.connect(DB_NAME)
+        conn.row_factory = sqlite3.Row
+        logging.info("Database connection established successfully.")
+        return conn
+    except sqlite3.Error as e:
+        logging.error(f"Database connection failed: {e}")
         return None
 
-# --- Save to DB Function (Implemented) ---
-def save_to_db(component_data, retailer_id, db_conn=None):
-    """
-    Saves scraped component data and its price to the database.
-    Handles insertion/update into 'components' and insertion into 'price_history'.
-    """
+def save_to_db(product_data, retailer_id, db_conn=None):
+    """Updates the price of an existing component in the SQLite database."""
     if not db_conn:
-        logging.warning(f"DB connection not available. Skipping save for {component_data.get('name')}.")
+        logging.warning(f"DB connection not available. Skipping save for {product_data.get('name')}.")
         return
 
     cursor = db_conn.cursor()
     try:
-        # 1. Get or create the component in the 'components' table
-        component_id = get_or_create_component(cursor, component_data, component_data.get('component_type'))
-
-        if component_id and component_data.get('price') is not None:
-            # 2. Insert the price into the 'price_history' table
-            cursor.execute("""
-                INSERT INTO price_history (component_id, retailer_id, price, scraped_at)
-                VALUES (%s, %s, %s, NOW())
-                ON CONFLICT (component_id, retailer_id, scraped_at) DO NOTHING; -- Avoid duplicate entries if script re-runs in same minute
-            """, (component_id, retailer_id, component_data.get('price')))
-            logging.info(f"Price {component_data.get('price')} for {component_data.get('name')} (CompID: {component_id}, RetailerID: {retailer_id}) saved to price_history.")
-        elif not component_id:
-            logging.error(f"Could not get or create component for {component_data.get('name')}. Price not saved.")
-        elif component_data.get('price') is None:
-            logging.warning(f"Price is None for {component_data.get('name')}. Not saving to price_history.")
-
-        db_conn.commit()
-
-    except Exception as e:
-        logging.error(f"Database transaction error for {component_data.get('name')}: {e}")
-        db_conn.rollback()
+        # We assume the component already exists in 'components' table
+        # We update the price for the component that matches the name
+        cursor.execute("""
+            UPDATE components 
+            SET price = ? 
+            WHERE name = ?
+        """, (
+            product_data.get('price'),
+            product_data.get('name')
+        ))
+        
+        if cursor.rowcount == 0:
+            logging.info(f"Component '{product_data.get('name')}' not found for update, skipping.")
+        else:
+            db_conn.commit()
+            logging.info(f"Successfully updated price for {product_data.get('name')} to {product_data.get('price')}.")
+            
+    except sqlite3.Error as e:
+        logging.error(f"Database update error for {product_data.get('name')}: {e}")
     finally:
         cursor.close()
 
@@ -669,8 +570,7 @@ def run_all_retailer_scrapers(max_pages_per_retailer=MAX_PAGES_TO_SCRAPE):
     }
 
     for retailer_id, config in retailers_to_scrape.items():
-        logging.info(f"
---- Starting Scraper for {config['name']} (Retailer ID: {retailer_id}) ---")
+        logging.info(f"\n--- Starting Scraper for {config['name']} (Retailer ID: {retailer_id}) ---")
         current_page_url = config['url']
         page_count = 1
         retailer_products = []
@@ -763,19 +663,16 @@ if __name__ == "__main__":
         print("Database connection available. Proceeding with scraping and saving.")
         scraped_data = run_all_retailer_scrapers(max_pages_per_retailer=MAX_PAGES_TO_SCRAPE)
         
-        print(f"
---- Scraping Summary ---")
+        print(f"\n--- Scraping Summary ---")
         print(f"Scraping process completed for multiple retailers.")
         print(f"Total products processed/saved to DB: {len(scraped_data)}")
     else:
-        print("
---- DB Connection Failed ---")
+        print("\n--- DB Connection Failed ---")
         print("Could not establish database connection. Scraping aborted. Please check DB_CONFIG and ensure PostgreSQL is running.")
         print("Proceeding with simulated saving (logging only) for demonstration purposes.")
         # Run without DB connection for demonstration if DB is not set up yet
         scraped_data = run_all_retailer_scrapers(max_pages_per_retailer=MAX_PAGES_TO_SCRAPE) # Will use simulated saving
-        print(f"
---- Scraping Summary (Simulated Save) ---")
+        print("\n--- Scraping Summary (Simulated Save) ---")
         print(f"Scraping process completed.")
         print(f"Total products processed (simulated save): {len(scraped_data)}")
 

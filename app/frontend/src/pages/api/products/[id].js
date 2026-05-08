@@ -1,4 +1,4 @@
-// pages/api/components/[type].js
+// pages/api/products/[id].js
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import path from 'path';
@@ -6,7 +6,7 @@ import path from 'path';
 const dbPath = path.resolve(process.cwd(), '../../pc_builder_db.sqlite');
 
 export default async function handler(req, res) {
-  const { type } = req.query;
+  const { id } = req.query;
 
   try {
     const db = await open({
@@ -14,17 +14,16 @@ export default async function handler(req, res) {
       driver: sqlite3.Database
     });
 
-    // Query to get components and their lowest price
-    const components = await db.all(`
-      SELECT c.*, MIN(rp.price) as min_price
-      FROM components c
-      LEFT JOIN retailer_prices rp ON c.id = rp.component_id
-      WHERE c.category = ?
-      GROUP BY c.id
-    `, [type.toUpperCase()]);
+    const component = await db.get('SELECT * FROM components WHERE id = ?', [id]);
+    const prices = await db.all('SELECT * FROM retailer_prices WHERE component_id = ?', [id]);
 
     await db.close();
-    res.status(200).json(components);
+
+    if (!component) {
+      return res.status(404).json({ message: 'Component not found' });
+    }
+
+    res.status(200).json({ ...component, prices });
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).json({ message: 'Internal server error' });
