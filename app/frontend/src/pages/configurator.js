@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import ComponentSelector from '../components/ComponentSelector';
 import BuildSummary from '../components/BuildSummary';
+import SiteHeader from '../components/SiteHeader';
 
 function BuildConfiguratorPage() {
   const [selectedComponents, setSelectedComponents] = useState({});
@@ -132,109 +133,73 @@ function BuildConfiguratorPage() {
         />
       </Head>
 
-      <div className="min-h-screen overflow-hidden bg-[#020406] px-4 py-8 text-white">
-        <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_20%_20%,rgba(0,120,255,0.18),transparent_30%),radial-gradient(circle_at_80%_10%,rgba(16,255,160,0.14),transparent_28%),linear-gradient(to_bottom,#020406,#010101)]" />
-        <div className="fixed left-10 top-16 h-[2px] w-80 rotate-[-24deg] bg-gradient-to-r from-blue-500 to-emerald-400 opacity-60 blur-sm" />
-        <div className="fixed bottom-12 right-12 h-[2px] w-80 rotate-[18deg] bg-gradient-to-r from-blue-500 to-emerald-400 opacity-60 blur-sm" />
+      <div className="min-h-screen bg-[#020406] text-white">
+        <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_14%_16%,rgba(0,140,255,0.28),transparent_18%),radial-gradient(circle_at_86%_80%,rgba(80,255,150,0.20),transparent_18%),radial-gradient(circle_at_70%_12%,rgba(0,220,255,0.14),transparent_20%),linear-gradient(to_bottom,#010204,#020406_46%,#010101)]" />
+        <div className="fixed inset-x-0 bottom-0 h-24 bg-[linear-gradient(90deg,rgba(0,140,255,0.18),transparent_20%,transparent_80%,rgba(80,255,150,0.20))] opacity-70" />
+        <SiteHeader active="build" />
 
-        <div className="mx-auto max-w-7xl rounded-[28px] border border-white/10 bg-white/5 p-5 shadow-[0_0_50px_rgba(0,180,255,0.08)] backdrop-blur-xl md:p-8 lg:p-10">
-          <nav className="flex items-center justify-between border-b border-white/10 px-0 pb-5 lg:pb-6">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-emerald-400 text-xl font-black text-black shadow-[0_0_25px_rgba(0,255,180,0.35)]">
-                C
+        <main className="mx-auto w-full max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8">
+          <section className="grid gap-8 xl:grid-cols-[1.35fr_0.65fr]">
+            <div className="rounded-[34px] border border-white/10 bg-white/[0.04] p-5 shadow-[0_0_50px_rgba(0,180,255,0.08)] backdrop-blur-xl md:p-8">
+              <div className="mb-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
+                <div>
+                  <p className="mb-4 inline-flex rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[4px] text-emerald-300">
+                    Build Configurator
+                  </p>
+                  <h1 className="max-w-3xl text-2xl font-black leading-[1.02] md:text-4xl lg:text-5xl">
+                    Design a clean build with live pricing and compatibility checks.
+                  </h1>
+                  <p className="mt-5 max-w-2xl text-base leading-8 text-gray-300">
+                    Pick parts from the catalog, see totals update instantly, and save the final build when you are done.
+                  </p>
+                  <div className="mt-6 max-w-md">
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[3px] text-gray-400">
+                      Build Name
+                    </label>
+                    <input
+                      type="text"
+                      value={buildName}
+                      onChange={(e) => setBuildName(e.target.value)}
+                      className="w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                      placeholder="Enter build name"
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-cyan-500/20 bg-black/35 p-5 shadow-[0_0_30px_rgba(0,180,255,0.08)]">
+                  <div className="text-xs uppercase tracking-[4px] text-emerald-300">Analysis Status</div>
+                  <div className="mt-2 text-sm leading-7 text-gray-300">{analysisStatus}</div>
+                </div>
               </div>
-              <h1 className="text-xl font-black tracking-wide">
-                PC MAKER{" "}
-                <span className="bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-                  BD
-                </span>
-              </h1>
-            </div>
 
-            <div className="hidden items-center gap-8 text-sm font-medium text-gray-400 md:flex">
-              <a href="/" className="transition hover:text-white">
-                Home
-              </a>
-              <a href="/configurator" className="border-b-2 border-cyan-500 pb-1 text-white">
-                Build PC
-              </a>
-              <a href="/comparison-results" className="transition hover:text-white">
-                Compare
-              </a>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <button className="text-sm font-medium transition hover:text-cyan-400">
-                Login
-              </button>
-              <a
-                href="/comparison-results"
-                className="rounded-xl bg-gradient-to-r from-blue-500 to-emerald-400 px-6 py-3 text-sm font-bold text-black transition hover:scale-105"
-              >
-                Compare
-              </a>
-            </div>
-          </nav>
-
-          <div className="mb-8 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[4px] text-cyan-400">Build Configurator</p>
-              <h1 className="mt-2 text-4xl font-black leading-tight md:text-5xl">
-                Build your custom PC
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-300 md:text-base">
-                Select parts from live retailer data, compare pricing in real time, and get compatibility feedback before you buy.
-              </p>
-              <div className="mt-5 max-w-md">
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-[3px] text-gray-400">
-                  Build Name
-                </label>
-                <input
-                  type="text"
-                  value={buildName}
-                  onChange={(e) => setBuildName(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
-                  placeholder="Enter build name"
-                />
+              <div className="mb-8 grid gap-4 sm:grid-cols-3">
+                <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
+                  <div className="text-xs uppercase tracking-[3px] text-gray-400">Selected Parts</div>
+                  <div className="mt-2 text-3xl font-black">{Object.keys(selectedComponents).length}</div>
+                </div>
+                <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
+                  <div className="text-xs uppercase tracking-[3px] text-gray-400">Estimated Total</div>
+                  <div className="mt-2 text-3xl font-black">BDT {Number(totalPrice).toLocaleString()}</div>
+                </div>
+                <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
+                  <div className="text-xs uppercase tracking-[3px] text-gray-400">Bottleneck</div>
+                  <div className="mt-2 text-3xl font-black">
+                    {bottleneckScore !== null ? `${Number(bottleneckScore).toFixed(1)}/100` : '--'}
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div className="rounded-2xl border border-cyan-500/20 bg-black/40 px-4 py-4 text-sm text-gray-300 shadow-[0_0_30px_rgba(0,180,255,0.08)]">
-              <div className="text-xs uppercase tracking-[3px] text-cyan-400">Analysis Status</div>
-              <div className="mt-2 leading-relaxed">{analysisStatus}</div>
-            </div>
-          </div>
-
-          <div className="mb-6 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-white/10 bg-black/30 px-4 py-4 shadow-[0_0_20px_rgba(0,0,0,0.18)]">
-              <div className="text-xs uppercase tracking-[3px] text-gray-400">Selected Parts</div>
-              <div className="mt-2 text-2xl font-black">{Object.keys(selectedComponents).length}</div>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-black/30 px-4 py-4 shadow-[0_0_20px_rgba(0,0,0,0.18)]">
-              <div className="text-xs uppercase tracking-[3px] text-gray-400">Estimated Total</div>
-              <div className="mt-2 text-2xl font-black">৳ {Number(totalPrice).toLocaleString()}</div>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-black/30 px-4 py-4 shadow-[0_0_20px_rgba(0,0,0,0.18)]">
-              <div className="text-xs uppercase tracking-[3px] text-gray-400">Bottleneck</div>
-              <div className="mt-2 text-2xl font-black">
-                {bottleneckScore !== null ? `${Number(bottleneckScore).toFixed(1)}/100` : '--'}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 lg:items-start">
-            <div className="rounded-[24px] border border-white/10 bg-black/35 p-5 shadow-[0_0_40px_rgba(0,180,255,0.05)] lg:col-span-2 md:p-6">
-              <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div className="mb-5 flex items-end justify-between gap-4">
                 <div>
                   <h2 className="text-2xl font-semibold">Select Components</h2>
                   <p className="mt-1 text-sm text-gray-400">Pricing updates from SQLite</p>
                 </div>
-                <span className="inline-flex w-fit rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[2px] text-cyan-300">
+                <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[2px] text-emerald-300">
                   Live Catalog
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
                 {componentTypes.map((type) => (
                   <ComponentSelector
                     key={type}
@@ -245,7 +210,7 @@ function BuildConfiguratorPage() {
               </div>
             </div>
 
-            <div className="lg:col-span-1 lg:sticky lg:top-6">
+            <div className="xl:sticky xl:top-6 xl:self-start xl:justify-self-end xl:w-full xl:max-w-[420px]">
               <BuildSummary
                 selectedComponents={selectedComponents}
                 totalPrice={totalPrice}
@@ -257,8 +222,8 @@ function BuildConfiguratorPage() {
                 saveStatus={saveStatus}
               />
             </div>
-          </div>
-        </div>
+          </section>
+        </main>
       </div>
     </>
   );

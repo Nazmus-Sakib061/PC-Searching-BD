@@ -17,7 +17,7 @@ function BuildSummary({
   return (
     <div className="sticky top-6 rounded-[24px] border border-cyan-500/20 bg-black/35 p-5 shadow-[0_0_40px_rgba(0,180,255,0.05)] backdrop-blur-sm md:p-6">
       <div className="mb-5">
-        <p className="text-xs font-semibold uppercase tracking-[3px] text-cyan-400">Build Summary</p>
+        <p className="text-xs font-semibold uppercase tracking-[3px] text-emerald-300">Build Summary</p>
         <h2 className="mt-2 text-2xl font-black text-white">Your selected parts</h2>
       </div>
 
@@ -36,7 +36,7 @@ function BuildSummary({
                 <div className="text-sm font-semibold text-white">{comp.name}</div>
                 <div className="mt-1 text-xs uppercase tracking-[2px] text-gray-400">{type}</div>
               </div>
-              <span className="shrink-0 text-sm font-semibold text-cyan-300">৳ {Number(comp.price).toLocaleString()}</span>
+              <span className="shrink-0 text-sm font-semibold text-emerald-300">BDT {Number(comp.price).toLocaleString()}</span>
             </div>
           )
         ))}
@@ -45,7 +45,7 @@ function BuildSummary({
       <div className="mt-4 border-t border-white/10 pt-4">
         <div className="flex justify-between text-xl font-black text-white">
           <span>Total Price</span>
-          <span>৳ {Number(totalPrice).toLocaleString()}</span>
+          <span className="text-emerald-300">BDT {Number(totalPrice).toLocaleString()}</span>
         </div>
       </div>
 
@@ -65,14 +65,14 @@ function BuildSummary({
       {isLoadingBuild && <p className="mt-4 text-center text-cyan-300">Calculating build performance...</p>}
 
       {bottleneckScore !== null && !isLoadingBuild && (
-        <div className="mt-4 rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-4 text-cyan-100">
+        <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-emerald-100">
           <h3 className="font-semibold">Bottleneck Score: {Number(bottleneckScore).toFixed(1)}/100</h3>
           <p className="mt-1 text-sm text-cyan-100/80">Analysis based on component balance.</p>
         </div>
       )}
 
       <button
-        className="mt-6 w-full rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 px-6 py-3 text-lg font-bold text-black transition duration-300 hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-6 w-full rounded-xl bg-gradient-to-r from-blue-600 to-emerald-400 px-6 py-3 text-lg font-bold text-black transition duration-300 hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
         onClick={onSaveBuild}
         disabled={totalPrice === 0 || (compatibilityIssues && compatibilityIssues.length > 0) || isLoadingBuild || isSavingBuild}
       >

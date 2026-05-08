@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
+import SiteHeader from '../components/SiteHeader';
 
 function ComparisonResultsPage() {
   const [comparisonData, setComparisonData] = useState([]);
@@ -45,90 +46,102 @@ function ComparisonResultsPage() {
         <meta property="og:description" content={pageDescription} />
       </Head>
 
-      <div className="min-h-screen bg-[#020406] px-4 py-8 text-white">
-        <div className="mx-auto max-w-7xl rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-[0_0_50px_rgba(0,180,255,0.08)] backdrop-blur-xl md:p-10">
-          <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[4px] text-cyan-400">Price Comparison</p>
-              <h1 className="mt-2 text-4xl font-black md:text-5xl">Compare components across retailers</h1>
+      <div className="min-h-screen bg-[#020406] text-white">
+        <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_20%_20%,rgba(0,120,255,0.18),transparent_30%),radial-gradient(circle_at_80%_10%,rgba(16,255,160,0.14),transparent_28%),radial-gradient(circle_at_50%_90%,rgba(0,180,255,0.12),transparent_30%),linear-gradient(to_bottom,#020406,#010101)]" />
+        <SiteHeader active="compare" />
+
+        <main className="mx-auto w-full max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8">
+          <section className="rounded-[34px] border border-white/10 bg-white/[0.04] p-5 shadow-[0_0_50px_rgba(0,180,255,0.08)] backdrop-blur-xl md:p-8">
+            <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="inline-flex rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[4px] text-emerald-300">
+                  Price Comparison
+                </p>
+                <h1 className="mt-4 text-4xl font-black leading-[0.95] md:text-6xl">
+                  Compare components across retailers.
+                </h1>
+                <p className="mt-4 max-w-2xl text-base leading-8 text-gray-300">
+                  Live pricing pulled from SQLite, arranged in a wide comparison surface that fills the page.
+                </p>
+              </div>
+              <div className="rounded-3xl border border-white/10 bg-black/35 px-5 py-4 text-sm text-gray-300">
+                View prices by component and spot the best retailer at a glance.
+              </div>
             </div>
-            <div className="text-sm text-gray-400">
-              Live pricing pulled from SQLite
-            </div>
-          </div>
 
-          {loading && <p className="my-8 text-center text-xl">Loading comparisons...</p>}
-          {error && <p className="my-8 text-center text-xl text-red-400">{error}</p>}
+            {loading && <p className="my-8 text-center text-lg text-gray-300">Loading comparisons...</p>}
+            {error && <p className="my-8 text-center text-lg text-red-400">{error}</p>}
 
-          {!loading && !error && comparisonData.length === 0 && (
-            <p className="my-8 text-center text-xl">No comparison data available at the moment.</p>
-          )}
+            {!loading && !error && comparisonData.length === 0 && (
+              <p className="my-8 text-center text-lg text-gray-300">No comparison data available at the moment.</p>
+            )}
 
-          {!loading && !error && comparisonData.length > 0 && (
-            <div className="overflow-x-auto rounded-2xl border border-white/10">
-              <table className="min-w-full border-collapse text-left">
-                <thead>
-                  <tr className="bg-white/5">
-                    <th className="border-b border-white/10 px-4 py-3 font-semibold">Component</th>
-                    <th className="border-b border-white/10 px-4 py-3 font-semibold">Category</th>
-                    <th className="border-b border-white/10 px-4 py-3 font-semibold">Specifications</th>
-                    {retailerNames.map((retailerName) => (
-                      <th
-                        key={retailerName}
-                        className="border-b border-white/10 px-4 py-3 text-center font-semibold"
-                      >
-                        {retailerName}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {comparisonData.map((item, index) => (
-                    <tr key={item.id} className={index % 2 === 0 ? 'bg-white/0' : 'bg-white/[0.03]'}>
-                      <td className="border-b border-white/10 px-4 py-4 font-medium">{item.component}</td>
-                      <td className="border-b border-white/10 px-4 py-4 text-gray-300">{item.category}</td>
-                      <td className="border-b border-white/10 px-4 py-4 text-gray-300">{item.specs || '-'}</td>
-                      {retailerNames.map((retailerName) => {
-                        const retailerData = item.retailers.find((r) => r.name === retailerName);
-                        return (
-                          <td key={retailerName} className="border-b border-white/10 px-4 py-4 text-center">
-                            {retailerData ? (
-                              <a
-                                href={retailerData.url || '#'}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-cyan-400 hover:underline"
-                              >
-                                ৳ {Number(retailerData.price || 0).toLocaleString()}
-                              </a>
-                            ) : (
-                              '-'
-                            )}
-                          </td>
-                        );
-                      })}
+            {!loading && !error && comparisonData.length > 0 && (
+              <div className="overflow-x-auto rounded-[28px] border border-white/10">
+                <table className="min-w-full border-collapse text-left">
+                  <thead>
+                    <tr className="bg-white/5">
+                      <th className="border-b border-white/10 px-4 py-4 font-semibold">Component</th>
+                      <th className="border-b border-white/10 px-4 py-4 font-semibold">Category</th>
+                      <th className="border-b border-white/10 px-4 py-4 font-semibold">Specifications</th>
+                      {retailerNames.map((retailerName) => (
+                        <th
+                          key={retailerName}
+                          className="border-b border-white/10 px-4 py-4 text-center font-semibold"
+                        >
+                          {retailerName}
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  </thead>
+                  <tbody>
+                    {comparisonData.map((item, index) => (
+                      <tr key={item.id} className={index % 2 === 0 ? 'bg-white/0' : 'bg-white/[0.03]'}>
+                        <td className="border-b border-white/10 px-4 py-4 font-medium">{item.component}</td>
+                        <td className="border-b border-white/10 px-4 py-4 text-gray-300">{item.category}</td>
+                        <td className="border-b border-white/10 px-4 py-4 text-gray-300">{item.specs || '-'}</td>
+                        {retailerNames.map((retailerName) => {
+                          const retailerData = item.retailers.find((r) => r.name === retailerName);
+                          return (
+                            <td key={retailerName} className="border-b border-white/10 px-4 py-4 text-center">
+                              {retailerData ? (
+                                <a
+                                  href={retailerData.url || '#'}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="font-semibold text-emerald-300 hover:text-emerald-200 hover:underline"
+                                >
+                                  BDT {Number(retailerData.price || 0).toLocaleString()}
+                                </a>
+                              ) : (
+                                '-'
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-          <div className="mt-8 flex gap-4">
-            <a
-              href="/"
-              className="rounded-xl border border-white/10 px-5 py-3 text-sm font-semibold transition hover:bg-white/5"
-            >
-              Back to Homepage
-            </a>
-            <a
-              href="/configurator"
-              className="rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 px-5 py-3 text-sm font-semibold text-black transition hover:scale-105"
-            >
-              Go to Configurator
-            </a>
-          </div>
-        </div>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <a
+                href="/"
+                className="rounded-xl border border-white/10 px-5 py-3 text-sm font-semibold transition hover:bg-white/5"
+              >
+                Back to Homepage
+              </a>
+              <a
+                href="/configurator"
+                className="rounded-xl bg-gradient-to-r from-blue-600 to-emerald-400 px-5 py-3 text-sm font-semibold text-black transition hover:scale-105"
+              >
+                Go to Configurator
+              </a>
+            </div>
+          </section>
+        </main>
       </div>
     </>
   );
