@@ -15,15 +15,25 @@ export default async function handler(req, res) {
     });
 
     const component = await db.get('SELECT * FROM components WHERE id = ?', [id]);
-    const prices = await db.all('SELECT * FROM retailer_prices WHERE component_id = ?', [id]);
-
-    await db.close();
 
     if (!component) {
+      await db.close();
       return res.status(404).json({ message: 'Component not found' });
     }
 
-    res.status(200).json({ ...component, prices });
+    const prices = await db.all(
+      'SELECT id, component_id, retailer_name, price, url, updated_at FROM retailer_prices WHERE component_id = ? ORDER BY price ASC',
+      [id]
+    );
+
+    await db.close();
+
+    res.status(200).json({
+      ...component,
+      category: component.category,
+      component_type: component.category,
+      prices,
+    });
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).json({ message: 'Internal server error' });

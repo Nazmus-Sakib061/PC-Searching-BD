@@ -383,8 +383,7 @@ if __name__ == "__main__":
     # For manual execution during development:
     scraped_data = run_startech_scraper(retailer_id=1) # Assuming retailer_id 1 for Star Tech
     
-    print(f"
---- Scraping Summary ---")
+    print("\n--- Scraping Summary ---")
     print(f"Scraping process for Star Tech CPUs completed.")
     print(f"Successfully processed/simulated saving for {len(scraped_data)} products.")
 

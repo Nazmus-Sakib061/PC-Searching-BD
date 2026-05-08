@@ -10,7 +10,9 @@ import sqlite3
 # --- Configuration ---
 BASE_URL = "https://www.startech.com.bd"
 CPU_CATEGORY_URL_ST = "https://www.startech.com.bd/component/processor"
+RYANS_BASE_URL = "https://www.ryanscomputers.com"
 RYANS_CPU_CATEGORY_URL = "https://www.ryanscomputers.com/category/desktop-component-processor"
+TECHLAND_BASE_URL = "https://www.techlandbd.com"
 TECHLAND_CPU_CATEGORY_URL = "https://www.techlandbd.com/shop-pc-components-processor"
 MAX_PAGES_TO_SCRAPE = 3 # Reduced for testing
 REQUEST_DELAY_SECONDS = 3
@@ -24,6 +26,12 @@ TECHLAND_HEADERS = HEADERS
 # --- Database Connection ---
 DB_NAME = "pc_builder_db.sqlite"
 
+RETAILER_NAMES = {
+    1: "Star Tech",
+    2: "Ryans Computers",
+    3: "Tech Land BD",
+}
+
 def get_db_connection():
     """Establishes and returns a SQLite database connection."""
     try:
@@ -36,29 +44,62 @@ def get_db_connection():
         return None
 
 def save_to_db(product_data, retailer_id, db_conn=None):
-    """Updates the price of an existing component in the SQLite database."""
+    """Upserts a component row and stores the latest retailer price in SQLite."""
     if not db_conn:
         logging.warning(f"DB connection not available. Skipping save for {product_data.get('name')}.")
         return
 
     cursor = db_conn.cursor()
     try:
-        # We assume the component already exists in 'components' table
-        # We update the price for the component that matches the name
-        cursor.execute("""
-            UPDATE components 
-            SET price = ? 
-            WHERE name = ?
-        """, (
-            product_data.get('price'),
-            product_data.get('name')
-        ))
-        
-        if cursor.rowcount == 0:
-            logging.info(f"Component '{product_data.get('name')}' not found for update, skipping.")
+        component_name = product_data.get('name')
+        component_type = product_data.get('component_type') or product_data.get('category') or 'Unknown'
+        component_specs = {
+            key: value
+            for key, value in product_data.items()
+            if key not in {'price', 'url', 'availability', 'component_type', 'category'}
+        }
+
+        specs_json = json.dumps(component_specs, ensure_ascii=False, default=str)
+
+        cursor.execute(
+            "SELECT id FROM components WHERE name = ? AND category = ?",
+            (component_name, component_type)
+        )
+        row = cursor.fetchone()
+
+        if row:
+            component_id = row[0]
+            cursor.execute(
+                "UPDATE components SET specs = ? WHERE id = ?",
+                (specs_json, component_id)
+            )
         else:
-            db_conn.commit()
-            logging.info(f"Successfully updated price for {product_data.get('name')} to {product_data.get('price')}.")
+            cursor.execute(
+                "INSERT INTO components (name, category, specs) VALUES (?, ?, ?)",
+                (component_name, component_type, specs_json)
+            )
+            component_id = cursor.lastrowid
+
+        retailer_name = RETAILER_NAMES.get(retailer_id, f"Retailer {retailer_id}")
+        price = float(product_data.get('price') or 0)
+        url = product_data.get('url')
+
+        cursor.execute(
+            "DELETE FROM retailer_prices WHERE component_id = ? AND retailer_name = ?",
+            (component_id, retailer_name)
+        )
+        cursor.execute(
+            """
+            INSERT INTO retailer_prices (component_id, retailer_name, price, url)
+            VALUES (?, ?, ?, ?)
+            """,
+            (component_id, retailer_name, price, url)
+        )
+
+        db_conn.commit()
+        logging.info(
+            f"Saved {component_type} '{component_name}' with latest price {price} from {retailer_name}."
+        )
             
     except sqlite3.Error as e:
         logging.error(f"Database update error for {product_data.get('name')}: {e}")
