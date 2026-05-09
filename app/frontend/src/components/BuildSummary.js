@@ -30,6 +30,45 @@ function parseNumber(value) {
   return match ? Number(match[1]) : 0;
 }
 
+function readMetric(source, keys) {
+  if (!source) {
+    return null;
+  }
+
+  for (const key of keys) {
+    const directValue = source[key];
+    if (directValue !== undefined && directValue !== null && directValue !== '') {
+      return directValue;
+    }
+  }
+
+  const specs = source.specs && typeof source.specs === 'object' ? source.specs : null;
+  if (!specs) {
+    return null;
+  }
+
+  for (const key of keys) {
+    const specValue = specs[key];
+    if (specValue !== undefined && specValue !== null && specValue !== '') {
+      return specValue;
+    }
+  }
+
+  const specFields = specs.spec_fields && typeof specs.spec_fields === 'object' ? specs.spec_fields : null;
+  if (!specFields) {
+    return null;
+  }
+
+  for (const key of keys) {
+    const fieldValue = specFields[key];
+    if (fieldValue !== undefined && fieldValue !== null && fieldValue !== '') {
+      return fieldValue;
+    }
+  }
+
+  return null;
+}
+
 function firstOf(value) {
   return Array.isArray(value) ? value.filter(Boolean)[0] || null : value || null;
 }
@@ -42,13 +81,24 @@ function estimatePowerScore(selectedComponents) {
   const ramItems = Array.isArray(selectedComponents.RAM) ? selectedComponents.RAM.filter(Boolean) : firstOf(selectedComponents.RAM) ? [firstOf(selectedComponents.RAM)] : [];
   const storageItems = Array.isArray(selectedComponents.Storage) ? selectedComponents.Storage.filter(Boolean) : firstOf(selectedComponents.Storage) ? [firstOf(selectedComponents.Storage)] : [];
 
-  const cpuCores = parseNumber(cpu?.cores || cpu?.core_count);
-  const cpuThreads = parseNumber(cpu?.threads);
-  const gpuVram = gpuItems.reduce((best, item) => Math.max(best, parseNumber(item?.vram_gb || item?.memory_gb || item?.memory_size_gb)), 0);
-  const ramGb = ramItems.reduce((total, item) => total + parseNumber(item?.capacity_gb || item?.size_gb || item?.memory_size_gb), 0);
-  const storageGb = storageItems.reduce((total, item) => total + parseNumber(item?.capacity_gb || item?.size_gb || item?.storage_gb), 0);
-  const wattage = parseNumber(psu?.wattage_w || psu?.wattage || psu?.power_w);
-  const socketHint = String(cpu?.socket_type || motherboard?.socket_type || '').toUpperCase();
+  const cpuCores = parseNumber(readMetric(cpu, ['cores', 'core_count']));
+  const cpuThreads = parseNumber(readMetric(cpu, ['threads', 'thread_count']));
+  const gpuVram = gpuItems.reduce(
+    (best, item) => Math.max(best, parseNumber(readMetric(item, ['vram_gb', 'memory_gb', 'memory_size_gb']))),
+    0
+  );
+  const ramGb = ramItems.reduce(
+    (total, item) => total + parseNumber(readMetric(item, ['capacity_gb', 'size_gb', 'memory_size_gb'])),
+    0
+  );
+  const storageGb = storageItems.reduce(
+    (total, item) => total + parseNumber(readMetric(item, ['capacity_gb', 'size_gb', 'storage_gb'])),
+    0
+  );
+  const wattage = parseNumber(readMetric(psu, ['wattage_w', 'wattage', 'power_w']));
+  const socketHint = String(
+    readMetric(cpu, ['socket_type', 'socket', 'cpu_socket']) || readMetric(motherboard, ['socket_type', 'socket', 'cpu_socket']) || ''
+  ).toUpperCase();
 
   let score = 0;
   score += Math.min(30, cpuCores * 2.25);

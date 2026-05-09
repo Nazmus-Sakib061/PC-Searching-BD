@@ -35,6 +35,16 @@ export default function handler(req, res) {
           return value;
         }
       }
+
+      const specFields = specs.spec_fields;
+      if (specFields && typeof specFields === 'object') {
+        for (const key of keys) {
+          const value = specFields[key];
+          if (value !== undefined && value !== null && value !== '') {
+            return value;
+          }
+        }
+      }
     }
     return null;
   };
@@ -63,6 +73,37 @@ export default function handler(req, res) {
 
   const parseText = (value) => String(value || '').toUpperCase();
 
+  const readMetric = (source, keys) => {
+    for (const key of keys) {
+      const value = source?.[key];
+      if (value !== undefined && value !== null && value !== '') {
+        return value;
+      }
+    }
+
+    const specs = source?.specs;
+    if (specs && typeof specs === 'object') {
+      for (const key of keys) {
+        const value = specs[key];
+        if (value !== undefined && value !== null && value !== '') {
+          return value;
+        }
+      }
+
+      const specFields = specs.spec_fields;
+      if (specFields && typeof specFields === 'object') {
+        for (const key of keys) {
+          const value = specFields[key];
+          if (value !== undefined && value !== null && value !== '') {
+            return value;
+          }
+        }
+      }
+    }
+
+    return null;
+  };
+
   const cpu = firstOf(components.CPU);
   const motherboard = firstOf(components.Motherboard);
   const ramList = asArray(components.RAM);
@@ -87,8 +128,8 @@ export default function handler(req, res) {
     score -= 10;
   }
 
-  const cpuSocket = pick(cpu, ['socket_type', 'socket', 'cpu_socket']);
-  const motherboardSocket = pick(motherboard, ['socket_type', 'socket', 'cpu_socket']);
+  const cpuSocket = readMetric(cpu, ['socket_type', 'socket', 'cpu_socket']);
+  const motherboardSocket = readMetric(motherboard, ['socket_type', 'socket', 'cpu_socket']);
   if (cpuSocket && motherboardSocket && parseText(cpuSocket) !== parseText(motherboardSocket)) {
     compatibility_issues.push({
       message: `Socket mismatch: CPU (${cpuSocket}) and Motherboard (${motherboardSocket}) are incompatible.`,
@@ -97,9 +138,9 @@ export default function handler(req, res) {
     score -= 35;
   }
 
-  const motherboardRamType = pick(motherboard, ['ram_type', 'memory_type', 'type']);
+  const motherboardRamType = readMetric(motherboard, ['ram_type', 'memory_type', 'type']);
   const ramPrimary = firstOf(ramList);
-  const ramType = pick(ramPrimary, ['type', 'ram_type', 'memory_type']);
+  const ramType = readMetric(ramPrimary, ['type', 'ram_type', 'memory_type']);
   if (motherboardRamType && ramType && parseText(motherboardRamType) !== parseText(ramType)) {
     compatibility_issues.push({
       message: `RAM mismatch: Motherboard supports ${motherboardRamType} but selected RAM is ${ramType}.`,
@@ -108,12 +149,13 @@ export default function handler(req, res) {
     score -= 25;
   }
 
-  const cpuCores = parseNumber(pick(cpu, ['cores', 'core_count']));
+  const cpuCores = parseNumber(readMetric(cpu, ['cores', 'core_count']));
+  const cpuThreads = parseNumber(readMetric(cpu, ['threads', 'thread_count']));
   const gpuPrimary = bestOf(gpuList, ['vram_gb', 'memory_gb', 'memory_size_gb']);
-  const gpuVram = parseNumber(pick(gpuPrimary, ['vram_gb', 'memory_gb', 'memory_size_gb']));
-  const ramCapacity = ramList.reduce((total, item) => total + parseNumber(pick(item, ['capacity_gb', 'size_gb', 'memory_size_gb'])), 0);
-  const psuWattage = parseNumber(pick(psu, ['wattage_w', 'wattage', 'power_w']));
-  const storageCapacity = storageList.reduce((total, item) => total + parseNumber(pick(item, ['capacity_gb', 'size_gb', 'storage_gb'])), 0);
+  const gpuVram = parseNumber(readMetric(gpuPrimary, ['vram_gb', 'memory_gb', 'memory_size_gb']));
+  const ramCapacity = ramList.reduce((total, item) => total + parseNumber(readMetric(item, ['capacity_gb', 'size_gb', 'memory_size_gb'])), 0);
+  const psuWattage = parseNumber(readMetric(psu, ['wattage_w', 'wattage', 'power_w']));
+  const storageCapacity = storageList.reduce((total, item) => total + parseNumber(readMetric(item, ['capacity_gb', 'size_gb', 'storage_gb'])), 0);
 
   if (cpuCores > 0 && gpuVram > 0) {
     const balanceGap = Math.abs((cpuCores * 2) - gpuVram);
@@ -133,7 +175,7 @@ export default function handler(req, res) {
     const ramTypes = Array.from(
       new Set(
         ramList
-          .map((item) => parseText(pick(item, ['type', 'ram_type', 'memory_type'])))
+          .map((item) => parseText(readMetric(item, ['type', 'ram_type', 'memory_type'])))
           .filter(Boolean)
       )
     );
@@ -190,7 +232,7 @@ export default function handler(req, res) {
 
   let performance_score = 0;
   performance_score += Math.min(30, cpuCores * 2.25);
-  performance_score += Math.min(15, parseNumber(pick(cpu, ['threads', 'thread_count'])) * 0.75);
+  performance_score += Math.min(15, cpuThreads * 0.75);
   performance_score += Math.min(30, gpuVram * 3);
   performance_score += Math.min(15, ramCapacity * 1.1);
   performance_score += Math.min(5, storageCapacity / 512);
