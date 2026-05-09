@@ -17,6 +17,25 @@ function normalizeRetailerName(name) {
   return canonical || raw;
 }
 
+function compactDisplayName(name) {
+  let value = String(name || '').replace(/\s+/g, ' ').trim();
+  if (!value) {
+    return 'Unnamed Product';
+  }
+
+  value = value
+    .replace(/^Model #:\s*/i, '')
+    .replace(/^REFURBISHED\s+/i, '')
+    .replace(/\*\s*Save:.*$/i, '')
+    .trim();
+
+  if (value.length > 88) {
+    value = `${value.slice(0, 85).trim()}...`;
+  }
+
+  return value;
+}
+
 function formatSpecsSummary(specsValue) {
   if (!specsValue) {
     return '';
@@ -106,6 +125,7 @@ export default async function handler(req, res) {
         itemMap.set(row.id, {
           id: row.id,
           component: row.name,
+          display_name: compactDisplayName(row.name),
           category: row.category,
           specs: formatSpecsSummary(row.specs),
           retailers: [],

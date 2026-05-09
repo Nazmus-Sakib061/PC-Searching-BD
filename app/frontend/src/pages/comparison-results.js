@@ -36,6 +36,12 @@ function ComparisonResultsPage() {
 
   const pageTitle = 'Global PC Parts - PC Bottleneck Checker';
   const pageDescription = 'Compare real PC parts and laptops from a global catalog.';
+  const clampStyle = {
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
+    overflow: 'hidden',
+  };
 
   return (
     <>
@@ -97,9 +103,13 @@ function ComparisonResultsPage() {
                   <tbody>
                     {comparisonData.map((item, index) => (
                       <tr key={item.id} className={index % 2 === 0 ? 'bg-white/0' : 'bg-white/[0.03]'}>
-                        <td className="border-b border-white/10 px-4 py-4 font-medium">{item.component}</td>
+                        <td className="border-b border-white/10 px-4 py-4 font-medium text-white" style={clampStyle}>
+                          {item.display_name || item.component}
+                        </td>
                         <td className="border-b border-white/10 px-4 py-4 text-gray-300">{item.category}</td>
-                        <td className="border-b border-white/10 px-4 py-4 text-gray-300">{item.specs || '-'}</td>
+                        <td className="border-b border-white/10 px-4 py-4 text-gray-300" style={clampStyle}>
+                          {item.specs || '-'}
+                        </td>
                         {retailerNames.map((retailerName) => {
                           const retailerData = item.retailers.find((r) => r.name === retailerName);
                           return (
@@ -109,9 +119,9 @@ function ComparisonResultsPage() {
                                   href={retailerData.url || '#'}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="font-semibold text-emerald-300 hover:text-emerald-200 hover:underline"
-                                >
-                                  $ {Number(retailerData.price || 0).toLocaleString()}
+                                className="font-semibold text-emerald-300 hover:text-emerald-200 hover:underline"
+                              >
+                                  ${Number(retailerData.price || 0).toLocaleString()}
                                 </a>
                               ) : (
                                 '-'

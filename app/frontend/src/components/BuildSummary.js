@@ -1,5 +1,14 @@
 import React from 'react';
 
+function clampStyle(lines = 2) {
+  return {
+    display: '-webkit-box',
+    WebkitLineClamp: lines,
+    WebkitBoxOrient: 'vertical',
+    overflow: 'hidden',
+  };
+}
+
 function BuildSummary({
   selectedComponents,
   totalPrice,
@@ -32,11 +41,15 @@ function BuildSummary({
         {Object.entries(selectedComponents).map(([type, comp]) => (
           comp && comp.name !== `Select ${type}` && comp.price > 0 && (
             <div key={type} className="flex items-start justify-between gap-4 border-b border-white/10 py-3">
-              <div>
-                <div className="text-sm font-semibold text-white">{comp.name}</div>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold leading-6 text-white" style={clampStyle(2)}>
+                  {comp.display_name || comp.name}
+                </div>
                 <div className="mt-1 text-xs uppercase tracking-[2px] text-gray-400">{type}</div>
               </div>
-              <span className="shrink-0 text-sm font-semibold text-emerald-300">$ {Number(comp.price).toLocaleString()}</span>
+              <span className="shrink-0 text-sm font-semibold text-emerald-300">
+                ${Number(comp.price).toLocaleString()}
+              </span>
             </div>
           )
         ))}
@@ -45,7 +58,7 @@ function BuildSummary({
       <div className="mt-4 border-t border-white/10 pt-4">
         <div className="flex justify-between text-xl font-black text-white">
           <span>Total Price</span>
-          <span className="text-emerald-300">$ {Number(totalPrice).toLocaleString()}</span>
+          <span className="text-emerald-300">${Number(totalPrice).toLocaleString()}</span>
         </div>
       </div>
 

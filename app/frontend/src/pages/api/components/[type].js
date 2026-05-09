@@ -33,6 +33,35 @@ function parseSpecs(specsValue) {
   }
 }
 
+function compactDisplayName(name, brand) {
+  let value = String(name || '').replace(/\s+/g, ' ').trim();
+  if (!value) {
+    return 'Unnamed Product';
+  }
+
+  value = value
+    .replace(/^Model #:\s*/i, '')
+    .replace(/^REFURBISHED\s+/i, '')
+    .replace(/\s+\(\s*$/, ' ')
+    .replace(/\s*\*\s*Save:.*$/i, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+  if (brand) {
+    const brandText = String(brand).trim();
+    if (brandText && value.toLowerCase().startsWith(brandText.toLowerCase())) {
+      value = value.slice(brandText.length).trim();
+      value = `${brandText} ${value}`.trim();
+    }
+  }
+
+  if (value.length > 110) {
+    value = `${value.slice(0, 107).trim()}...`;
+  }
+
+  return value;
+}
+
 export default async function handler(req, res) {
   const { type } = req.query;
   const sort = String(req.query.sort || 'price_asc').toLowerCase();
@@ -110,10 +139,13 @@ export default async function handler(req, res) {
     const components = rows.map((row) => {
       const specs = parseSpecs(row.specs);
       const minPrice = Number(row.min_price || 0);
+      const displayName = compactDisplayName(row.name, row.brand);
 
       return {
         id: row.id,
         name: row.name,
+        display_name: displayName,
+        compact_name: displayName,
         category: row.category,
         component_type: row.product_type || row.category,
         source_name: row.source_name,

@@ -5,6 +5,25 @@ import path from 'path';
 
 const dbPath = path.resolve(process.cwd(), '../pc_builder_db.sqlite');
 
+function compactDisplayName(name) {
+  let value = String(name || '').replace(/\s+/g, ' ').trim();
+  if (!value) {
+    return 'Unnamed Product';
+  }
+
+  value = value
+    .replace(/^Model #:\s*/i, '')
+    .replace(/^REFURBISHED\s+/i, '')
+    .replace(/\*\s*Save:.*$/i, '')
+    .trim();
+
+  if (value.length > 88) {
+    value = `${value.slice(0, 85).trim()}...`;
+  }
+
+  return value;
+}
+
 export default async function handler(req, res) {
   const { id } = req.query;
 
@@ -30,6 +49,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({
       ...component,
+      display_name: compactDisplayName(component.name),
       category: component.category,
       component_type: component.product_type || component.category,
       prices,
