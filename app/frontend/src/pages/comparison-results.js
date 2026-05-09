@@ -46,11 +46,6 @@ function ComparisonResultsPage() {
   };
 
   const handleBack = () => {
-    if (typeof window !== 'undefined' && window.history.length > 1) {
-      router.back();
-      return;
-    }
-
     router.push('/configurator');
   };
 
@@ -153,7 +148,7 @@ function ComparisonResultsPage() {
                 onClick={handleBack}
                 className="rounded-xl border border-white/10 px-5 py-3 text-sm font-semibold transition hover:bg-white/5"
               >
-                Back
+                Back to Configurator
               </button>
               <a
                 href="/configurator"

@@ -56,11 +56,6 @@ export default function ProductDetails() {
   const [calculatorStatus, setCalculatorStatus] = useState('Select parts to calculate bottleneck balance.');
 
   const handleBack = () => {
-    if (typeof window !== 'undefined' && window.history.length > 1) {
-      router.back();
-      return;
-    }
-
     router.push('/configurator');
   };
 
@@ -224,7 +219,7 @@ export default function ProductDetails() {
               onClick={handleBack}
               className="rounded-xl border border-white/10 bg-black/25 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/5"
             >
-              Back
+              Back to Configurator
             </button>
           </div>
 
