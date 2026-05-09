@@ -131,6 +131,7 @@ function BuildSummary({
   performanceLabel,
   suggestions,
   isLoadingBuild,
+  onRemoveComponent,
   onSaveBuild,
   isSavingBuild,
   saveStatus,
@@ -167,17 +168,30 @@ function BuildSummary({
         {entries.map(({ type, comp, index }) => (
           <div key={`${type}-${comp.id || index}`} className="flex items-start justify-between gap-4 border-b border-white/10 py-3">
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold leading-6 text-white" style={clampStyle(2)}>
+              <div className="text-[13px] font-semibold leading-5 text-white" style={clampStyle(2)}>
                 {comp.display_name || comp.name}
               </div>
-              <div className="mt-1 text-xs uppercase tracking-[2px] text-gray-400">
+              <div className="mt-1 text-[10px] uppercase tracking-[2px] text-gray-400">
                 {type}
                 {Array.isArray(selectedComponents[type]) ? ` #${index + 1}` : ''}
               </div>
             </div>
-            <span className="shrink-0 text-sm font-semibold text-emerald-300">
-              ${Number(comp.price).toLocaleString()}
-            </span>
+            <div className="flex shrink-0 items-center gap-2">
+              {typeof onRemoveComponent === 'function' ? (
+                <button
+                  type="button"
+                  onClick={() => onRemoveComponent(type, comp.id)}
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-red-400/30 bg-red-500/10 text-xs font-black text-red-100 transition hover:bg-red-500/20"
+                  aria-label={`Remove ${comp.display_name || comp.name}`}
+                  title="Remove one"
+                >
+                  x
+                </button>
+              ) : null}
+              <span className="shrink-0 text-sm font-semibold text-emerald-300">
+                ${Number(comp.price).toLocaleString()}
+              </span>
+            </div>
           </div>
         ))}
       </div>
@@ -192,12 +206,12 @@ function BuildSummary({
       <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <div className="text-xs uppercase tracking-[3px] text-gray-500">Performance Meter</div>
-            <div className="mt-1 text-lg font-semibold text-white capitalize">{powerLabel}</div>
+            <div className="text-[10px] uppercase tracking-[3px] text-gray-500">Performance Meter</div>
+            <div className="mt-1 text-base font-semibold text-white capitalize">{powerLabel}</div>
           </div>
           <div className="text-right">
-            <div className="text-3xl font-black text-white">{powerScore}</div>
-            <div className="text-xs uppercase tracking-[3px] text-gray-500">Power</div>
+            <div className="text-2xl font-black text-white">{powerScore}</div>
+            <div className="text-[10px] uppercase tracking-[3px] text-gray-500">Power</div>
           </div>
         </div>
         <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/10">
@@ -206,7 +220,7 @@ function BuildSummary({
             style={{ width: `${barWidth}%`, background: barGradient }}
           />
         </div>
-        <div className="mt-3 flex items-center justify-between text-[11px] uppercase tracking-[2px] text-gray-500">
+        <div className="mt-3 flex items-center justify-between text-[10px] uppercase tracking-[2px] text-gray-500">
           <span>Slow</span>
           <span>Medium</span>
           <span>High</span>
@@ -244,13 +258,13 @@ function BuildSummary({
 
       {bottleneckScore !== null && !isLoadingBuild && (
         <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-emerald-100">
-          <h3 className="font-semibold">Bottleneck Score: {Number(bottleneckScore).toFixed(1)}/100</h3>
-          <p className="mt-1 text-sm text-cyan-100/80">Analysis based on component balance.</p>
+          <h3 className="text-sm font-semibold">Bottleneck Score: {Number(bottleneckScore).toFixed(1)}/100</h3>
+          <p className="mt-1 text-[13px] text-cyan-100/80">Analysis based on component balance.</p>
         </div>
       )}
 
       <button
-        className="mt-6 w-full rounded-xl bg-gradient-to-r from-blue-600 to-emerald-400 px-6 py-3 text-lg font-bold text-black transition duration-300 hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-6 w-full rounded-xl bg-gradient-to-r from-blue-600 to-emerald-400 px-6 py-3 text-sm font-bold text-black transition duration-300 hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
         onClick={onSaveBuild}
         disabled={totalPrice === 0 || (compatibilityIssues && compatibilityIssues.length > 0) || isLoadingBuild || isSavingBuild}
       >
@@ -258,7 +272,7 @@ function BuildSummary({
       </button>
 
       {saveStatus && (
-        <div className="mt-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-gray-200">
+        <div className="mt-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-[13px] text-gray-200">
           {saveStatus}
         </div>
       )}

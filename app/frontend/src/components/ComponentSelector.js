@@ -143,11 +143,13 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
   const handleRemove = (componentId) => {
     if (typeof onRemoveComponent === 'function') {
       onRemoveComponent(componentType, componentId);
+    } else {
+      onSelectComponent(componentType, defaultOption);
     }
     setIsBrowserOpen(false);
   };
 
-  const removeOneText = isMulti ? 'Remove -1' : 'Remove';
+  const removeOneText = 'Remove one';
 
   return (
     <>
@@ -172,7 +174,18 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
             <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                 <div className="min-w-0">
-                  <p className="text-xs uppercase tracking-[3px] text-gray-500">Selected Part</p>
+                  <div className="flex items-center gap-3">
+                    <p className="text-xs uppercase tracking-[3px] text-gray-500">Selected Part</p>
+                    {selectedItems.length > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => handleRemove(selectedItems[0].id)}
+                        className="rounded-full border border-red-400/25 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[2px] text-red-100 transition hover:bg-red-500/20"
+                      >
+                        Clear
+                      </button>
+                    ) : null}
+                  </div>
                   <div className="mt-2 text-sm font-semibold text-white" style={clampStyle(2)}>
                     {selectedLabel}
                   </div>
@@ -181,18 +194,22 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
                       {selectedItems.map((item, index) => (
                         <span
                           key={`${item.id}-${index}`}
-                          className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[2px] text-emerald-100"
+                          className="relative inline-flex min-h-8 items-center rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 pr-9 text-[11px] font-semibold uppercase tracking-[2px] text-emerald-100"
                           title={item.display_name || item.name}
                         >
-                          <span style={clampStyle(1)}>{item.display_name || item.name}</span>
+                          <span className="block max-w-full" style={clampStyle(1)}>{item.display_name || item.name}</span>
                           <button
                             type="button"
-                            onClick={() => handleRemove(item.id)}
-                            className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-red-400/30 bg-red-500/15 text-[10px] font-black text-red-100 transition hover:bg-red-500/30"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleRemove(item.id);
+                            }}
+                            className="absolute right-1 top-1/2 z-10 inline-flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full border border-red-400/30 bg-red-500/20 text-[10px] font-black text-red-100 transition hover:bg-red-500/35"
                             aria-label={`Remove ${item.display_name || item.name}`}
                             title={removeOneText}
                           >
-                            ×
+                            x
                           </button>
                         </span>
                       ))}
@@ -393,12 +410,16 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
                         {isSelected && isMulti ? (
                           <button
                             type="button"
-                            onClick={() => handleRemove(component.id)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleRemove(component.id);
+                            }}
                             className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-400/30 bg-red-500/15 text-sm font-black text-red-100 transition hover:bg-red-500/30"
                             aria-label={`Remove ${displayName}`}
                             title="Remove one"
                           >
-                            ×
+                            x
                           </button>
                         ) : null}
 
@@ -458,7 +479,7 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
                               onClick={() => handleSelect(component)}
                               className="rounded-xl bg-gradient-to-r from-blue-600 to-emerald-400 px-3 py-2 text-xs font-bold text-black"
                             >
-                              {isSelected && isMulti ? `Added ×${selectedCount}` : 'Choose'}
+                              {isSelected && isMulti ? `Added x${selectedCount}` : 'Choose'}
                             </button>
                           </div>
                         </div>

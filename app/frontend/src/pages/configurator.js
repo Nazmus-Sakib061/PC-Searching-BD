@@ -72,9 +72,10 @@ function BuildConfiguratorPage() {
       }
 
       if (current && String(current.id) === String(componentId)) {
-        const draft = { ...prev };
-        delete draft[componentType];
-        return draft;
+        return {
+          ...prev,
+          [componentType]: { name: `Select ${componentType}`, price: 0, component_type: componentType },
+        };
       }
 
       return prev;
@@ -225,17 +226,17 @@ function BuildConfiguratorPage() {
             <div className="rounded-[34px] border border-white/10 bg-white/[0.04] p-5 shadow-[0_0_50px_rgba(0,180,255,0.08)] backdrop-blur-xl md:p-8">
               <div className="mb-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
                 <div>
-                  <p className="mb-4 inline-flex rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[4px] text-emerald-300">
+                  <p className="mb-4 inline-flex rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-[10px] font-semibold uppercase tracking-[4px] text-emerald-300">
                     Build Configurator
                   </p>
-                  <h1 className="max-w-3xl text-2xl font-black leading-[1.02] md:text-4xl lg:text-5xl">
+                  <h1 className="max-w-3xl text-xl font-black leading-[1.02] md:text-3xl lg:text-4xl">
                     Design a clean build with live pricing and compatibility checks.
                   </h1>
-                  <p className="mt-5 max-w-2xl text-base leading-8 text-gray-300">
+                  <p className="mt-5 max-w-2xl text-sm leading-7 text-gray-300">
                     Pick parts from the catalog, see totals update instantly, and save the final build when you are done.
                   </p>
                   <div className="mt-6 max-w-md">
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[3px] text-gray-400">
+                    <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[3px] text-gray-400">
                       Build Name
                     </label>
                     <input
@@ -249,23 +250,23 @@ function BuildConfiguratorPage() {
                 </div>
 
                 <div className="rounded-3xl border border-cyan-500/20 bg-black/35 p-5 shadow-[0_0_30px_rgba(0,180,255,0.08)]">
-                  <div className="text-xs uppercase tracking-[4px] text-emerald-300">Analysis Status</div>
-                  <div className="mt-2 text-sm leading-7 text-gray-300">{analysisStatus}</div>
+                  <div className="text-[10px] uppercase tracking-[4px] text-emerald-300">Analysis Status</div>
+                  <div className="mt-2 text-[13px] leading-6 text-gray-300">{analysisStatus}</div>
                 </div>
               </div>
 
               <div className="mb-8 grid gap-4 sm:grid-cols-3">
                 <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
-                  <div className="text-xs uppercase tracking-[3px] text-gray-400">Selected Parts</div>
-                  <div className="mt-2 text-3xl font-black">{selectedCount}</div>
+                  <div className="text-[10px] uppercase tracking-[3px] text-gray-400">Selected Parts</div>
+                  <div className="mt-2 text-2xl font-black">{selectedCount}</div>
                 </div>
                 <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
-                  <div className="text-xs uppercase tracking-[3px] text-gray-400">Estimated Total</div>
-                  <div className="mt-2 text-3xl font-black">$ {Number(totalPrice).toLocaleString()}</div>
+                  <div className="text-[10px] uppercase tracking-[3px] text-gray-400">Estimated Total</div>
+                  <div className="mt-2 text-2xl font-black">$ {Number(totalPrice).toLocaleString()}</div>
                 </div>
                 <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
-                  <div className="text-xs uppercase tracking-[3px] text-gray-400">Bottleneck</div>
-                  <div className="mt-2 text-3xl font-black">
+                  <div className="text-[10px] uppercase tracking-[3px] text-gray-400">Bottleneck</div>
+                  <div className="mt-2 text-2xl font-black">
                     {bottleneckScore !== null ? `${Number(bottleneckScore).toFixed(1)}/100` : '--'}
                   </div>
                 </div>
@@ -273,14 +274,14 @@ function BuildConfiguratorPage() {
 
               <div className="mb-5 flex items-end justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-semibold">Select Components</h2>
-                  <p className="mt-1 text-sm text-gray-400">Pricing updates from SQLite</p>
+                  <h2 className="text-xl font-semibold">Select Components</h2>
+                  <p className="mt-1 text-[13px] text-gray-400">Pricing updates from SQLite</p>
                 </div>
-                <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[2px] text-emerald-300">
+                <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[2px] text-emerald-300">
                   Live Catalog
                 </span>
               </div>
-              <div className="mb-5 rounded-2xl border border-cyan-500/10 bg-cyan-500/5 px-4 py-3 text-sm text-cyan-100">
+              <div className="mb-5 rounded-2xl border border-cyan-500/10 bg-cyan-500/5 px-4 py-3 text-[13px] text-cyan-100">
                 RAM, GPU, and Storage can be added multiple times. Pick the same category again to stack parts.
               </div>
 
@@ -307,6 +308,7 @@ function BuildConfiguratorPage() {
                 performanceLabel={performanceLabel}
                 suggestions={suggestions}
                 isLoadingBuild={isLoadingBuild}
+                onRemoveComponent={handleComponentRemove}
                 onSaveBuild={handleSaveBuild}
                 isSavingBuild={isSavingBuild}
                 saveStatus={saveStatus}
