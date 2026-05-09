@@ -22,9 +22,8 @@ function clampStyle(lines = 2) {
   };
 }
 
-function ComponentSelector({ componentType, onSelectComponent }) {
+function ComponentSelector({ componentType, selectedComponent, onSelectComponent, onRemoveComponent }) {
   const [components, setComponents] = useState([]);
-  const [selectedComponent, setSelectedComponent] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,6 +32,9 @@ function ComponentSelector({ componentType, onSelectComponent }) {
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [isBrowserOpen, setIsBrowserOpen] = useState(false);
+
+  const isMulti = ['GPU', 'RAM', 'Storage'].includes(componentType);
+  const defaultOption = { name: `Select ${componentType}`, price: 0, component_type: componentType };
 
   useEffect(() => {
     const fetchComponents = async () => {
@@ -46,8 +48,14 @@ function ComponentSelector({ componentType, onSelectComponent }) {
         }
         const data = await response.json();
         setComponents(Array.isArray(data) ? data : []);
-        setSelectedComponent(null);
-        onSelectComponent(componentType, { name: `Select ${componentType}`, price: 0, component_type: componentType });
+
+        const hasSelection = Array.isArray(selectedComponent)
+          ? selectedComponent.length > 0
+          : !!selectedComponent && selectedComponent.name !== `Select ${componentType}`;
+
+        if (!hasSelection) {
+          onSelectComponent(componentType, defaultOption);
+        }
       } catch (err) {
         console.error('Error fetching components:', err);
         setError('Failed to load components.');
@@ -59,7 +67,7 @@ function ComponentSelector({ componentType, onSelectComponent }) {
     if (componentType) {
       fetchComponents();
     }
-  }, [componentType, onSelectComponent, sortOrder]);
+  }, [componentType, onSelectComponent, selectedComponent, sortOrder]);
 
   useEffect(() => {
     if (!isBrowserOpen) {
@@ -72,8 +80,6 @@ function ComponentSelector({ componentType, onSelectComponent }) {
       document.body.style.overflow = previousOverflow;
     };
   }, [isBrowserOpen]);
-
-  const defaultOption = { name: `Select ${componentType}`, price: 0, component_type: componentType };
 
   const brandOptions = useMemo(() => {
     const values = components
@@ -121,13 +127,27 @@ function ComponentSelector({ componentType, onSelectComponent }) {
     });
   }, [brandFilter, components, maxPrice, minPrice, searchTerm]);
 
-  const selectedLabel = selectedComponent?.display_name || selectedComponent?.name || defaultOption.name;
+  const selectedItems = Array.isArray(selectedComponent)
+    ? selectedComponent.filter(Boolean)
+    : selectedComponent && selectedComponent.name !== `Select ${componentType}`
+      ? [selectedComponent]
+      : [];
+
+  const selectedLabel = selectedItems[0]?.display_name || selectedItems[0]?.name || defaultOption.name;
 
   const handleSelect = (component) => {
-    setSelectedComponent(component);
     onSelectComponent(componentType, component);
     setIsBrowserOpen(false);
   };
+
+  const handleRemove = (componentId) => {
+    if (typeof onRemoveComponent === 'function') {
+      onRemoveComponent(componentType, componentId);
+    }
+    setIsBrowserOpen(false);
+  };
+
+  const removeOneText = isMulti ? 'Remove -1' : 'Remove';
 
   return (
     <>
@@ -156,6 +176,28 @@ function ComponentSelector({ componentType, onSelectComponent }) {
                   <div className="mt-2 text-sm font-semibold text-white" style={clampStyle(2)}>
                     {selectedLabel}
                   </div>
+                  {selectedItems.length > 0 ? (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {selectedItems.map((item, index) => (
+                        <span
+                          key={`${item.id}-${index}`}
+                          className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[2px] text-emerald-100"
+                          title={item.display_name || item.name}
+                        >
+                          <span style={clampStyle(1)}>{item.display_name || item.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemove(item.id)}
+                            className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-red-400/30 bg-red-500/15 text-[10px] font-black text-red-100 transition hover:bg-red-500/30"
+                            aria-label={`Remove ${item.display_name || item.name}`}
+                            title={removeOneText}
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
                 <button
                   type="button"
@@ -179,7 +221,7 @@ function ComponentSelector({ componentType, onSelectComponent }) {
                 </div>
                 <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
                   <div className="text-gray-500">Currency</div>
-                  <div className="mt-1 font-semibold text-white">$ USD</div>
+                  <div className="mt-1 font-semibold text-white">$</div>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
                   <div className="text-gray-500">Brand Filter</div>
@@ -336,21 +378,31 @@ function ComponentSelector({ componentType, onSelectComponent }) {
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   {filteredComponents.map((component) => {
                     const displayName = compactText(component.display_name || component.name);
-                    const isSelected =
-                      selectedComponent && String(selectedComponent.id) === String(component.id);
+                    const isSelected = selectedItems.some((item) => String(item.id) === String(component.id));
+                    const selectedCount = selectedItems.filter((item) => String(item.id) === String(component.id)).length;
 
                     return (
-                      <button
+                      <div
                         key={component.id}
-                        type="button"
-                        onClick={() => handleSelect(component)}
-                        className={`group rounded-[28px] border p-4 text-left transition duration-200 hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(0,180,255,0.12)] ${
+                        className={`group relative rounded-[28px] border p-4 text-left transition duration-200 hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(0,180,255,0.12)] ${
                           isSelected
                             ? 'border-emerald-400/40 bg-emerald-400/10'
                             : 'border-white/10 bg-white/[0.04] hover:border-cyan-500/30 hover:bg-white/[0.06]'
                         }`}
                       >
-                        <div className="mb-4 flex items-start justify-between gap-3">
+                        {isSelected && isMulti ? (
+                          <button
+                            type="button"
+                            onClick={() => handleRemove(component.id)}
+                            className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-400/30 bg-red-500/15 text-sm font-black text-red-100 transition hover:bg-red-500/30"
+                            aria-label={`Remove ${displayName}`}
+                            title="Remove one"
+                          >
+                            ×
+                          </button>
+                        ) : null}
+
+                        <div className="mb-4 flex items-start justify-between gap-3 pr-8">
                           <div className="min-w-0">
                             <div className="text-[11px] uppercase tracking-[3px] text-gray-500">
                               {component.brand || component.source_name || 'Live Source'}
@@ -375,7 +427,10 @@ function ComponentSelector({ componentType, onSelectComponent }) {
                         </div>
 
                         {component.description ? (
-                          <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-sm leading-6 text-gray-300" style={clampStyle(3)}>
+                          <div
+                            className="mb-4 rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-sm leading-6 text-gray-300"
+                            style={clampStyle(3)}
+                          >
                             {component.description}
                           </div>
                         ) : null}
@@ -386,13 +441,28 @@ function ComponentSelector({ componentType, onSelectComponent }) {
 
                         <div className="flex items-center justify-between gap-3">
                           <span className="text-xs font-semibold uppercase tracking-[3px] text-gray-400">
-                            Select to add
+                            {isMulti ? (selectedCount > 0 ? 'Add +1' : 'Add to build') : 'Select to add'}
                           </span>
-                          <span className="rounded-xl bg-gradient-to-r from-blue-600 to-emerald-400 px-3 py-2 text-xs font-bold text-black">
-                            Choose
-                          </span>
+                          <div className="flex items-center gap-2">
+                            {isSelected && isMulti ? (
+                              <button
+                                type="button"
+                                onClick={() => handleRemove(component.id)}
+                                className="rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-100 transition hover:bg-red-500/20"
+                              >
+                                {removeOneText}
+                              </button>
+                            ) : null}
+                            <button
+                              type="button"
+                              onClick={() => handleSelect(component)}
+                              className="rounded-xl bg-gradient-to-r from-blue-600 to-emerald-400 px-3 py-2 text-xs font-bold text-black"
+                            >
+                              {isSelected && isMulti ? `Added ×${selectedCount}` : 'Choose'}
+                            </button>
+                          </div>
                         </div>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>

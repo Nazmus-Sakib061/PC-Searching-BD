@@ -4,23 +4,80 @@ import ComponentSelector from '../components/ComponentSelector';
 import BuildSummary from '../components/BuildSummary';
 import SiteHeader from '../components/SiteHeader';
 
+const MULTI_SELECT_TYPES = new Set(['GPU', 'RAM', 'Storage']);
+
 function BuildConfiguratorPage() {
   const [selectedComponents, setSelectedComponents] = useState({});
   const [totalPrice, setTotalPrice] = useState(0);
   const [compatibilityIssues, setCompatibilityIssues] = useState([]);
   const [bottleneckScore, setBottleneckScore] = useState(null);
+  const [performanceScore, setPerformanceScore] = useState(null);
+  const [performanceLabel, setPerformanceLabel] = useState('slow');
+  const [suggestions, setSuggestions] = useState([]);
   const [isLoadingBuild, setIsLoadingBuild] = useState(false);
   const [isSavingBuild, setIsSavingBuild] = useState(false);
   const [analysisStatus, setAnalysisStatus] = useState('Select at least CPU, GPU, Motherboard, and RAM to analyze.');
   const [saveStatus, setSaveStatus] = useState('');
   const [buildName, setBuildName] = useState('My PC Build');
 
+  const flattenSelections = useCallback((value) => {
+    if (Array.isArray(value)) {
+      return value.filter(Boolean);
+    }
+    return value ? [value] : [];
+  }, []);
+
   const handleComponentSelect = useCallback((componentType, component) => {
     setSelectedComponents((prev) => {
-      if (prev[componentType]?.id === component.id) {
+      const isDefaultSelection = !component || !component.id || String(component.name || '').startsWith('Select ');
+
+      if (MULTI_SELECT_TYPES.has(componentType)) {
+        if (isDefaultSelection) {
+          return prev;
+        }
+
+        const current = flattenSelections(prev[componentType]);
+        return {
+          ...prev,
+          [componentType]: [...current, component],
+        };
+      }
+
+      if (prev[componentType]?.id === component?.id) {
         return prev;
       }
+
       return { ...prev, [componentType]: component };
+    });
+  }, [flattenSelections]);
+
+  const handleComponentRemove = useCallback((componentType, componentId) => {
+    setSelectedComponents((prev) => {
+      const current = prev[componentType];
+
+      if (Array.isArray(current)) {
+        const next = [...current];
+        const index = next.findIndex((item) => String(item.id) === String(componentId));
+        if (index >= 0) {
+          next.splice(index, 1);
+        }
+
+        if (next.length === 0) {
+          const draft = { ...prev };
+          delete draft[componentType];
+          return draft;
+        }
+
+        return { ...prev, [componentType]: next };
+      }
+
+      if (current && String(current.id) === String(componentId)) {
+        const draft = { ...prev };
+        delete draft[componentType];
+        return draft;
+      }
+
+      return prev;
     });
   }, []);
 
@@ -59,29 +116,42 @@ function BuildConfiguratorPage() {
     let currentPrice = 0;
     const systemForAnalysis = {};
 
-    Object.values(selectedComponents).forEach((comp) => {
-      if (comp && Number(comp.price || 0) > 0) {
-        currentPrice += Number(comp.price || 0);
+    Object.entries(selectedComponents).forEach(([type, comp]) => {
+      const items = Array.isArray(comp) ? comp : comp ? [comp] : [];
+
+      items.forEach((item) => {
+        if (item && Number(item.price || 0) > 0) {
+          currentPrice += Number(item.price || 0);
+        }
+      });
+
+      if (items.length === 0) {
+        return;
       }
 
-      if (comp && comp.component_type && comp.name !== `Select ${comp.component_type}`) {
-        systemForAnalysis[comp.component_type] = comp;
+      if (MULTI_SELECT_TYPES.has(type)) {
+        systemForAnalysis[type] = items;
+        return;
+      }
+
+      const primary = items[0];
+      if (primary && primary.component_type && primary.name !== `Select ${primary.component_type}`) {
+        systemForAnalysis[primary.component_type] = primary;
       }
     });
 
     setTotalPrice(currentPrice);
 
-    const hasCoreComponents =
-      systemForAnalysis.CPU &&
-      systemForAnalysis.GPU &&
-      systemForAnalysis.Motherboard &&
-      systemForAnalysis.RAM;
+    const hasAnySelection = Object.keys(systemForAnalysis).length > 0;
 
-    if (!hasCoreComponents) {
+    if (!hasAnySelection) {
       setCompatibilityIssues([]);
       setBottleneckScore(null);
+      setPerformanceScore(null);
+      setPerformanceLabel('slow');
+      setSuggestions([]);
       setIsLoadingBuild(false);
-      setAnalysisStatus('Select at least CPU, GPU, Motherboard, and RAM to analyze.');
+      setAnalysisStatus('Select parts to analyze performance and bottleneck.');
       return;
     }
 
@@ -102,6 +172,9 @@ function BuildConfiguratorPage() {
       .then((data) => {
         setBottleneckScore(data.bottleneck_score);
         setCompatibilityIssues(data.compatibility_issues || []);
+        setPerformanceScore(data.performance_score ?? null);
+        setPerformanceLabel(data.performance_label || 'slow');
+        setSuggestions(Array.isArray(data.suggestions) ? data.suggestions : []);
         setAnalysisStatus(
           data.compatibility_issues && data.compatibility_issues.length > 0
             ? 'Compatibility issues found. Review the warnings below.'
@@ -114,6 +187,9 @@ function BuildConfiguratorPage() {
           { message: 'Could not calculate bottleneck score. Please check component compatibility manually.' },
         ]);
         setBottleneckScore(null);
+        setPerformanceScore(null);
+        setPerformanceLabel('slow');
+        setSuggestions([]);
         setAnalysisStatus('Analysis failed.');
       })
       .finally(() => {
@@ -122,6 +198,12 @@ function BuildConfiguratorPage() {
   }, [selectedComponents]);
 
   const componentTypes = ['CPU', 'GPU', 'Motherboard', 'RAM', 'Storage', 'PSU', 'Case', 'CPU Cooler'];
+  const selectedCount = Object.values(selectedComponents).reduce((count, value) => {
+    if (Array.isArray(value)) {
+      return count + value.length;
+    }
+    return count + (value ? 1 : 0);
+  }, 0);
 
   return (
     <>
@@ -175,7 +257,7 @@ function BuildConfiguratorPage() {
               <div className="mb-8 grid gap-4 sm:grid-cols-3">
                 <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
                   <div className="text-xs uppercase tracking-[3px] text-gray-400">Selected Parts</div>
-                  <div className="mt-2 text-3xl font-black">{Object.keys(selectedComponents).length}</div>
+                  <div className="mt-2 text-3xl font-black">{selectedCount}</div>
                 </div>
                 <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
                   <div className="text-xs uppercase tracking-[3px] text-gray-400">Estimated Total</div>
@@ -198,13 +280,18 @@ function BuildConfiguratorPage() {
                   Live Catalog
                 </span>
               </div>
+              <div className="mb-5 rounded-2xl border border-cyan-500/10 bg-cyan-500/5 px-4 py-3 text-sm text-cyan-100">
+                RAM, GPU, and Storage can be added multiple times. Pick the same category again to stack parts.
+              </div>
 
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
                 {componentTypes.map((type) => (
                   <ComponentSelector
                     key={type}
                     componentType={type}
+                    selectedComponent={selectedComponents[type]}
                     onSelectComponent={handleComponentSelect}
+                    onRemoveComponent={handleComponentRemove}
                   />
                 ))}
               </div>
@@ -216,6 +303,9 @@ function BuildConfiguratorPage() {
                 totalPrice={totalPrice}
                 compatibilityIssues={compatibilityIssues}
                 bottleneckScore={bottleneckScore}
+                performanceScore={performanceScore}
+                performanceLabel={performanceLabel}
+                suggestions={suggestions}
                 isLoadingBuild={isLoadingBuild}
                 onSaveBuild={handleSaveBuild}
                 isSavingBuild={isSavingBuild}
