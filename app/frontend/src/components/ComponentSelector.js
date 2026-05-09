@@ -6,6 +6,7 @@ function ComponentSelector({ componentType, onSelectComponent }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState('price_asc');
 
   useEffect(() => {
     const fetchComponents = async () => {
@@ -13,7 +14,7 @@ function ComponentSelector({ componentType, onSelectComponent }) {
       setError(null);
       try {
         const urlType = componentType.toLowerCase().replace(' ', '-');
-        const response = await fetch(`/api/components/${urlType}`);
+        const response = await fetch(`/api/components/${urlType}?sort=${encodeURIComponent(sortOrder)}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -32,7 +33,7 @@ function ComponentSelector({ componentType, onSelectComponent }) {
     if (componentType) {
       fetchComponents();
     }
-  }, [componentType, onSelectComponent]);
+  }, [componentType, onSelectComponent, sortOrder]);
 
   const handleSelect = (event) => {
     const selectedValue = event.target.value;
@@ -79,6 +80,7 @@ function ComponentSelector({ componentType, onSelectComponent }) {
       {error && <p className="text-sm text-red-400">{error}</p>}
       {!isLoading && !error && (
         <div className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
           <input
             type="text"
             value={searchTerm}
@@ -86,6 +88,16 @@ function ComponentSelector({ componentType, onSelectComponent }) {
             placeholder={`Search ${componentType.toLowerCase()}...`}
             className="w-full rounded-xl border border-white/10 bg-[#05080d] px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
           />
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className="w-full rounded-xl border border-white/10 bg-[#05080d] px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+          >
+            <option value="price_asc">Price: Low to High</option>
+            <option value="price_desc">Price: High to Low</option>
+            <option value="name_asc">Name: A-Z</option>
+          </select>
+          </div>
 
           <select
             className="w-full rounded-xl border border-white/10 bg-[#05080d] px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
@@ -97,7 +109,7 @@ function ComponentSelector({ componentType, onSelectComponent }) {
             </option>
             {filteredComponents.map((comp) => (
               <option key={comp.id} value={JSON.stringify(comp)} className="bg-[#05080d]">
-                {comp.name} - BDT {Number(comp.price || 0).toLocaleString()}
+                {comp.name} - $ {Number(comp.price || 0).toLocaleString()}
               </option>
             ))}
           </select>

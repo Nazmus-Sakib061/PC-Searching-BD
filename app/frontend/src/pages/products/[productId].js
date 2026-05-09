@@ -31,26 +31,26 @@ export default function ProductDetails() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#050505] text-white p-10">
+      <div className="min-h-screen bg-[#050505] p-10 text-white">
         <p className="text-red-400">{error}</p>
       </div>
     );
   }
 
   if (loading || !product) {
-    return <div className="text-white p-20">Loading...</div>;
+    return <div className="p-20 text-white">Loading...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-10">
-      <h1 className="text-4xl font-bold mb-6">{product.name}</h1>
-      <p className="text-gray-400 mb-8">{product.component_type || product.category}</p>
+    <div className="min-h-screen bg-[#050505] p-10 text-white">
+      <h1 className="mb-6 text-4xl font-bold">{product.name}</h1>
+      <p className="mb-8 text-gray-400">{product.component_type || product.category}</p>
 
-      <h2 className="text-2xl font-semibold mb-4 text-cyan-400">Price Comparison</h2>
-      <div className="bg-white/5 rounded-xl overflow-hidden border border-white/10">
+      <h2 className="mb-4 text-2xl font-semibold text-cyan-400">Price Comparison</h2>
+      <div className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
         <table className="w-full text-left">
           <thead>
-            <tr className="bg-white/5 border-b border-white/10">
+            <tr className="border-b border-white/10 bg-white/5">
               <th className="p-4">Retailer</th>
               <th className="p-4">Price</th>
               <th className="p-4">Link</th>
@@ -60,7 +60,7 @@ export default function ProductDetails() {
             {(product.prices || []).map((p) => (
               <tr key={p.id} className="border-b border-white/10 hover:bg-white/5">
                 <td className="p-4">{p.retailer_name}</td>
-                <td className="p-4">৳ {Number(p.price).toLocaleString()}</td>
+                <td className="p-4">$ {Number(p.price).toLocaleString()}</td>
                 <td className="p-4">
                   <a
                     href={p.url}

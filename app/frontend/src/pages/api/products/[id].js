@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     res.status(200).json({
       ...component,
       category: component.category,
-      component_type: component.category,
+      component_type: component.product_type || component.category,
       prices,
     });
   } catch (error) {

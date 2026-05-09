@@ -34,8 +34,8 @@ function ComparisonResultsPage() {
     fetchData();
   }, []);
 
-  const pageTitle = 'Component Price Comparison - PC Maker BD';
-  const pageDescription = 'Compare live prices of PC components from local retailers.';
+  const pageTitle = 'Global PC Parts - PC Bottleneck Checker';
+  const pageDescription = 'Compare real PC parts and laptops from a global catalog.';
 
   return (
     <>
@@ -111,7 +111,7 @@ function ComparisonResultsPage() {
                                   rel="noopener noreferrer"
                                   className="font-semibold text-emerald-300 hover:text-emerald-200 hover:underline"
                                 >
-                                  BDT {Number(retailerData.price || 0).toLocaleString()}
+                                  $ {Number(retailerData.price || 0).toLocaleString()}
                                 </a>
                               ) : (
                                 '-'

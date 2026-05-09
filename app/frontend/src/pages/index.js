@@ -30,8 +30,8 @@ export default function HomePage() {
   return (
     <>
       <Head>
-        <title>PC Maker BD</title>
-        <meta name="description" content="Build, compare, and analyze your dream PC" />
+        <title>PC Bottleneck Checker</title>
+        <meta name="description" content="Check bottlenecks, compatibility, and performance for global PC parts and laptops." />
       </Head>
 
       <div className="min-h-screen bg-[#020406] text-white">
@@ -47,7 +47,7 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,255,160,0.16),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(0,120,255,0.16),transparent_35%)]" />
               <div className="relative z-10">
                 <p className="mb-4 inline-flex rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[4px] text-emerald-300">
-                  PC Maker BD
+                  PC Bottleneck Checker
                 </p>
 
                 <h1 className="max-w-3xl text-4xl font-black leading-[0.96] md:text-6xl lg:text-[4.7rem]">

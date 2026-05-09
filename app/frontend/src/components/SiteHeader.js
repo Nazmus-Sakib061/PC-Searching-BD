@@ -10,13 +10,13 @@ export default function SiteHeader({ active = 'home' }) {
       <div className="mx-auto flex max-w-[1600px] flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
         <a href="/" className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-emerald-400 text-xl font-black text-black shadow-[0_0_25px_rgba(52,211,153,0.35)]">
-            C
+            B
           </div>
           <div>
             <div className="text-xl font-black tracking-wide">
-              PC MAKER <span className="bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">BD</span>
+              PC BOTTLENECK <span className="bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">CHECKER</span>
             </div>
-            <div className="text-xs uppercase tracking-[4px] text-gray-400">Bangladesh PC Builder</div>
+            <div className="text-xs uppercase tracking-[4px] text-gray-400">Global Bottleneck Analyzer</div>
           </div>
         </a>
 

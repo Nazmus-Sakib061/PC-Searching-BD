@@ -126,10 +126,10 @@ function BuildConfiguratorPage() {
   return (
     <>
       <Head>
-        <title>Build PC - PC Maker BD</title>
+        <title>Build PC - PC Bottleneck Checker</title>
         <meta
           name="description"
-          content="Select live component pricing and check build compatibility in one place."
+          content="Select real PC parts and measure bottleneck, compatibility, and performance."
         />
       </Head>
 
@@ -179,7 +179,7 @@ function BuildConfiguratorPage() {
                 </div>
                 <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
                   <div className="text-xs uppercase tracking-[3px] text-gray-400">Estimated Total</div>
-                  <div className="mt-2 text-3xl font-black">BDT {Number(totalPrice).toLocaleString()}</div>
+                  <div className="mt-2 text-3xl font-black">$ {Number(totalPrice).toLocaleString()}</div>
                 </div>
                 <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
                   <div className="text-xs uppercase tracking-[3px] text-gray-400">Bottleneck</div>
