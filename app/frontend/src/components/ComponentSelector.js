@@ -374,6 +374,12 @@ function ComponentSelector({ componentType, onSelectComponent }) {
                           <div className="mt-1 text-[11px] text-gray-500">Live Newegg price</div>
                         </div>
 
+                        {component.description ? (
+                          <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-sm leading-6 text-gray-300" style={clampStyle(3)}>
+                            {component.description}
+                          </div>
+                        ) : null}
+
                         <div className="mb-4 text-xs uppercase tracking-[3px] text-gray-500">
                           {component.availability || 'Availability unknown'}
                         </div>

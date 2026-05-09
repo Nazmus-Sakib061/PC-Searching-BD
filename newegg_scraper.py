@@ -163,6 +163,10 @@ BRAND_ALIASES = [
 PRICE_RE = re.compile(r"^\$([\d,]+(?:\.\d{2})?)$")
 RANGE_PRICE_RE = re.compile(r"from\s+\$([\d,]+(?:\.\d{2})?)\s*-\s*\$([\d,]+(?:\.\d{2})?)", re.I)
 RATING_RE = re.compile(r"\((\d{1,6})\)")
+TITLE_LINK_RE = re.compile(
+    r'^\[(?P<title>.+?)\]\((?P<url>https?://www\.newegg\.com/[^\s)]+)(?:\s+"View Details")?\)$'
+)
+SPEC_BULLET_RE = re.compile(r'^\*\s+\*\*(?P<label>[^*]+?)\:\*\s*(?P<value>.+?)\s*$')
 MULTISPACE_RE = re.compile(r"\s+")
 
 NOISE_EXACT = {
@@ -180,6 +184,8 @@ NOISE_EXACT = {
     "view details",
     "see all",
     "filter",
+    "recommend use",
+    "recommend series",
 }
 
 
@@ -195,6 +201,243 @@ def normalize_slug(value):
 
 def normalize_space(value):
     return MULTISPACE_RE.sub(" ", str(value or "")).strip()
+
+
+def strip_markdown_links(value):
+    value = str(value or "")
+    value = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", value)
+    return normalize_space(value)
+
+
+def make_short_name(title):
+    cleaned = normalize_text(title)
+    if " - " in cleaned:
+      head = cleaned.split(" - ", 1)[0].strip()
+      return head or cleaned
+    return cleaned
+
+
+def make_description(title, spec_fields):
+    parts = []
+    tail = ""
+    cleaned = normalize_text(title)
+    if " - " in cleaned:
+        tail = " - ".join(segment.strip() for segment in cleaned.split(" - ")[1:]).strip()
+    if tail:
+        parts.append(tail)
+
+    preferred_labels = [
+        "socket",
+        "socket type",
+        "cores",
+        "threads",
+        "wattage",
+        "capacity",
+        "memory size",
+        "memory type",
+        "form factor",
+        "chipset",
+        "interface",
+        "speed",
+        "max speed",
+        "fan size",
+        "resolution",
+        "display size",
+        "processor type",
+        "processor speed",
+        "graphics",
+    ]
+
+    for label in preferred_labels:
+        value = spec_fields.get(label)
+        if value and value not in parts:
+            parts.append(f"{label.title()}: {value}")
+        if len(parts) >= 4:
+            break
+
+    if not parts and spec_fields:
+        for key, value in list(spec_fields.items())[:4]:
+            if value:
+                parts.append(f"{key.replace('_', ' ').title()}: {value}")
+
+    description = " | ".join(parts)
+    if len(description) > 260:
+        description = f"{description[:257].rstrip()}..."
+    return description
+
+
+def parse_size_gb(value):
+    text = normalize_text(value).upper()
+    match_tb = re.search(r"(\d+(?:\.\d+)?)\s*TB", text)
+    if match_tb:
+        return int(round(float(match_tb.group(1)) * 1024))
+    match_gb = re.search(r"(\d+(?:\.\d+)?)\s*GB", text)
+    if match_gb:
+        return int(round(float(match_gb.group(1))))
+    return None
+
+
+def parse_integer(value):
+    match = re.search(r"(\d{2,5})", normalize_text(value))
+    return int(match.group(1)) if match else None
+
+
+def parse_cores(text):
+    match = re.search(r"(\d+)\s*-\s*Core", text, re.I)
+    if match:
+        return int(match.group(1))
+    match = re.search(r"(\d+)\s*Core", text, re.I)
+    if match:
+        return int(match.group(1))
+    return None
+
+
+def parse_threads(text):
+    match = re.search(r"(\d+)\s*Thread", text, re.I)
+    return int(match.group(1)) if match else None
+
+
+def parse_socket_type(text):
+    patterns = [
+        r"Socket\s+([A-Z0-9]+\s?[A-Z0-9]*)",
+        r"\bLGA\s?\d{4}\b",
+        r"\bAM[45]\b",
+        r"\bsWRX8\b",
+        r"\bsTR5\b",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, re.I)
+        if match:
+            return normalize_text(match.group(0) if len(match.groups()) == 0 else match.group(1)).upper()
+    return None
+
+
+def parse_ram_type(text):
+    match = re.search(r"\bDDR[345]\b", text, re.I)
+    return match.group(0).upper() if match else None
+
+
+def parse_form_factor(text):
+    patterns = [r"\bMini-ITX\b", r"\bmITX\b", r"\bmicro ATX\b", r"\bmATX\b", r"\bATX\b", r"\bE-ATX\b"]
+    for pattern in patterns:
+        match = re.search(pattern, text, re.I)
+        if match:
+            return normalize_text(match.group(0)).upper()
+    return None
+
+
+def derive_structured_fields(product_type, title, spec_fields):
+    combined = " ".join(
+        normalize_text(part)
+        for part in [
+            title,
+            " ".join(f"{k}: {v}" for k, v in spec_fields.items()),
+        ]
+        if part
+    )
+    combined_upper = combined.upper()
+    fields = dict(spec_fields)
+
+    if product_type == "CPU":
+        fields.setdefault("socket_type", parse_socket_type(combined_upper))
+        fields.setdefault("cores", parse_cores(combined_upper))
+        fields.setdefault("threads", parse_threads(combined_upper))
+        wattage = re.search(r"(\d{2,3})\s*W\b", combined_upper)
+        if wattage:
+            fields.setdefault("wattage_w", int(wattage.group(1)))
+    elif product_type == "GPU":
+        vram = re.search(r"(\d{1,3})\s*GB", combined_upper)
+        if vram:
+            fields.setdefault("vram_gb", int(vram.group(1)))
+        memory_type = re.search(r"\bGDDR[34567]\b", combined_upper)
+        if memory_type:
+            fields.setdefault("memory_type", memory_type.group(0))
+        pcie = re.search(r"PCIe\s*([0-9.]+)", combined_upper, re.I)
+        if pcie:
+            fields.setdefault("pcie_version", pcie.group(1))
+    elif product_type == "Motherboard":
+        fields.setdefault("socket_type", parse_socket_type(combined_upper))
+        fields.setdefault("ram_type", parse_ram_type(combined_upper))
+        form_factor = parse_form_factor(combined_upper)
+        if form_factor:
+            fields.setdefault("form_factor", form_factor)
+        chipset = re.search(r"\b(B[0-9]{3,4}|Z[0-9]{3,4}|H[0-9]{3,4}|X[0-9]{3,4})\b", combined_upper)
+        if chipset:
+            fields.setdefault("chipset", chipset.group(1))
+    elif product_type == "RAM":
+        capacity = parse_size_gb(combined_upper)
+        if capacity:
+            fields.setdefault("capacity_gb", capacity)
+        ram_type = parse_ram_type(combined_upper)
+        if ram_type:
+            fields.setdefault("type", ram_type)
+        speed = re.search(r"(\d{4,6})\s*(?:MT/S|MHZ)\b", combined_upper)
+        if speed:
+            fields.setdefault("speed_mhz", int(speed.group(1)))
+    elif product_type == "Storage":
+        capacity = parse_size_gb(combined_upper)
+        if capacity:
+            fields.setdefault("capacity_gb", capacity)
+        if "NVME" in combined_upper or "M.2" in combined_upper:
+            fields.setdefault("interface", "NVMe")
+        elif "SATA" in combined_upper:
+            fields.setdefault("interface", "SATA")
+        form_factor = re.search(r"\b2\.5\"?\b|\bM\.2\b", combined_upper, re.I)
+        if form_factor:
+            fields.setdefault("form_factor", form_factor.group(0).replace('"', ''))
+    elif product_type == "PSU":
+        wattage = re.search(r"(\d{3,4})\s*W\b", combined_upper)
+        if wattage:
+            fields.setdefault("wattage_w", int(wattage.group(1)))
+        if "MODULAR" in combined_upper:
+            fields.setdefault("modular", "Yes")
+    elif product_type == "Case":
+        form_factor = parse_form_factor(combined_upper)
+        if form_factor:
+            fields.setdefault("form_factor", form_factor)
+    elif product_type == "CPU Cooler":
+        fan_size = re.search(r"(\d{2,3})\s*MM\b", combined_upper)
+        if fan_size:
+            fields.setdefault("fan_size_mm", int(fan_size.group(1)))
+        if "AIO" in combined_upper or "LIQUID" in combined_upper:
+            fields.setdefault("cooler_type", "Liquid")
+        elif "AIR" in combined_upper:
+            fields.setdefault("cooler_type", "Air")
+    elif product_type == "Laptop":
+        display = re.search(r"(\d{1,2}(?:\.\d+)?)\s*INCH|\b(\d{1,2}(?:\.\d+)?)\s*\"", combined_upper)
+        if display:
+            value = display.group(1) or display.group(2)
+            fields.setdefault("display_size_in", float(value))
+        cpu_match = re.search(r"(RYZEN\s+[0-9A-Z\-]+|CORE\s+i[3579][^\s,]*)", combined_upper)
+        if cpu_match:
+            fields.setdefault("cpu_platform", cpu_match.group(1))
+
+    return fields
+
+
+def normalize_spec_label(label):
+    return normalize_space(label).lower().replace(" ", "_")
+
+
+def parse_spec_fields(lines):
+    fields = {}
+    description_lines = []
+
+    for line in lines:
+        if is_noise_line(line):
+            continue
+        match = SPEC_BULLET_RE.match(line)
+        if match:
+            label = normalize_spec_label(match.group("label"))
+            value = strip_markdown_links(match.group("value")).lstrip("* ").strip()
+            if label and value:
+                fields[label] = value
+                continue
+        cleaned = strip_markdown_links(line)
+        if cleaned and not cleaned.startswith("Model #:") and not cleaned.startswith("Item #:"):
+            description_lines.append(cleaned)
+
+    return fields, description_lines
 
 
 def parse_price(value):
@@ -254,6 +497,12 @@ def is_noise_line(line):
     if lowered.startswith("sort by"):
         return True
     if lowered.startswith("page "):
+        return True
+    if lowered.startswith("recommend use"):
+        return True
+    if lowered.startswith("recommend series"):
+        return True
+    if lowered.startswith("you may also like"):
         return True
 
     return False
@@ -365,12 +614,23 @@ def select_title(lines, price_index):
     return None
 
 
-def parse_chunk(chunk):
+def parse_chunk(chunk, product_type):
     lines = [normalize_space(line) for line in chunk.splitlines()]
     lines = [line for line in lines if line]
 
     if len(lines) < 2:
         return None
+
+    title = None
+    product_url = None
+    title_index = None
+    for index, line in enumerate(lines):
+        match = TITLE_LINK_RE.match(line)
+        if match:
+            title = normalize_text(match.group("title"))
+            product_url = match.group("url")
+            title_index = index
+            break
 
     price_index = None
     for index, line in enumerate(lines):
@@ -381,9 +641,16 @@ def parse_chunk(chunk):
     if price_index is None:
         return None
 
-    title = select_title(lines, price_index)
+    if not title:
+        title = select_title(lines, price_index)
     if not title:
         return None
+
+    if title_index is None:
+        title_index = next(
+            (i for i, line in enumerate(lines) if normalize_text(title).lower() in line.lower()),
+            0,
+        )
 
     price = extract_price(lines[price_index:])
     if price is None:
@@ -391,18 +658,33 @@ def parse_chunk(chunk):
     if price is None:
         return None
 
+    spec_start = min(price_index, len(lines))
+    spec_lines = lines[title_index + 1:spec_start] if title_index is not None else lines[:spec_start]
+    spec_fields, description_lines = parse_spec_fields(spec_lines)
     brand = extract_brand(title)
-    model = extract_model(title, brand)
+    spec_fields = derive_structured_fields(product_type, title, spec_fields)
+    model = spec_fields.get("model") or spec_fields.get("model_#") or extract_model(title, brand)
     availability = detect_availability(lines)
     rating_count = extract_rating_count(lines)
+    short_name = make_short_name(title)
+    description = make_description(title, spec_fields)
+    if not description and description_lines:
+        description = " | ".join(description_lines[:4])
+    if not description:
+        description = short_name
 
     return {
         "title": title,
+        "short_name": short_name,
+        "description": description,
+        "product_url": product_url,
         "brand": brand,
         "model": model,
         "price": price,
         "availability": availability,
         "rating_count": rating_count,
+        "spec_fields": spec_fields,
+        "description_lines": description_lines,
     }
 
 
@@ -424,12 +706,52 @@ def fetch_page(session, query, page):
     raise RuntimeError(f"Failed to fetch {search_url}")
 
 
-def parse_page(text):
-    chunks = re.split(r"\n\s*\n+", text)
-    products = []
+def parse_page(text, product_type):
+    lines = [normalize_space(line) for line in text.splitlines()]
+    lines = [line for line in lines if line]
 
-    for chunk in chunks:
-        parsed = parse_chunk(chunk)
+    blocks = []
+    if any(line == "QUICK VIEW" for line in lines):
+        current_block = []
+        seen_first_card = False
+
+        for line in lines:
+            if line == "QUICK VIEW":
+                if current_block:
+                    blocks.append("\n".join(current_block))
+                    current_block = []
+                seen_first_card = True
+                continue
+
+            if not seen_first_card:
+                continue
+
+            current_block.append(line)
+
+        if current_block:
+            blocks.append("\n".join(current_block))
+    else:
+        current_block = []
+        seen_first_card = False
+
+        for line in lines:
+            if TITLE_LINK_RE.match(line):
+                if current_block:
+                    blocks.append("\n".join(current_block))
+                    current_block = []
+                seen_first_card = True
+
+            if not seen_first_card:
+                continue
+
+            current_block.append(line)
+
+        if current_block:
+            blocks.append("\n".join(current_block))
+
+    products = []
+    for block in blocks:
+        parsed = parse_chunk(block, product_type)
         if parsed:
             products.append(parsed)
 
@@ -446,10 +768,11 @@ def connect_db():
 def upsert_component(conn, item, category_config, page_url):
     product_type = category_config["product_type"]
     category = category_config["category"]
+    title = item.get("short_name") or item.get("title")
     source_item_id = build_source_item_id(
         product_type=product_type,
         category=category,
-        title=item["title"],
+        title=title,
         brand=item.get("brand"),
         model=item.get("model"),
     )
@@ -460,6 +783,8 @@ def upsert_component(conn, item, category_config, page_url):
         "page_url": page_url,
         "rating_count": item.get("rating_count", 0),
         "availability": item.get("availability"),
+        "description": item.get("description"),
+        "spec_fields": item.get("spec_fields") or {},
         "scraped_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
 
@@ -467,17 +792,18 @@ def upsert_component(conn, item, category_config, page_url):
     cursor.execute(
         """
         INSERT INTO components (
-            source_name, product_type, category, name, brand, model,
+            source_name, product_type, category, name, description, brand, model,
             specs, product_url, image_url, availability, rating_count,
             source_item_id, first_seen_at, last_seen_at, out_of_stock_since,
             updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP)
         ON CONFLICT(source_item_id) DO UPDATE SET
             source_name=excluded.source_name,
             product_type=excluded.product_type,
             category=excluded.category,
             name=excluded.name,
+            description=excluded.description,
             brand=excluded.brand,
             model=excluded.model,
             specs=excluded.specs,
@@ -497,11 +823,12 @@ def upsert_component(conn, item, category_config, page_url):
             SOURCE_NAME,
             product_type,
             category,
-            item["title"],
+            title,
+            item.get("description"),
             item.get("brand"),
             item.get("model"),
             json.dumps(specs, sort_keys=True),
-            page_url,
+            item.get("product_url") or page_url,
             None,
             item.get("availability"),
             int(item.get("rating_count") or 0),
@@ -602,7 +929,7 @@ def scrape_catalog(max_pages=8, min_items=70, delay=1.0, keep_db=False, category
                         print(f"[{category_config['product_type']}] {search_query} page {page} failed: {exc}")
                         break
 
-                    products = parse_page(text)
+                    products = parse_page(text, category_config["product_type"])
                     pages_scraped += 1
 
                     new_items = 0
@@ -610,7 +937,7 @@ def scrape_catalog(max_pages=8, min_items=70, delay=1.0, keep_db=False, category
                         source_item_id = build_source_item_id(
                             product_type=category_config["product_type"],
                             category=category_config["category"],
-                            title=item["title"],
+                            title=item.get("short_name") or item["title"],
                             brand=item.get("brand"),
                             model=item.get("model"),
                         )

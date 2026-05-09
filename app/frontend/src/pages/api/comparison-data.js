@@ -103,6 +103,7 @@ export default async function handler(req, res) {
       SELECT
         c.id,
         c.name,
+        c.description,
         c.category,
         c.specs,
         rp.retailer_name,
@@ -125,6 +126,7 @@ export default async function handler(req, res) {
         itemMap.set(row.id, {
           id: row.id,
           component: row.name,
+          description: row.description || '',
           display_name: compactDisplayName(row.name),
           category: row.category,
           specs: formatSpecsSummary(row.specs),

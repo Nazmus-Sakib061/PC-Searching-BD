@@ -88,6 +88,7 @@ export default async function handler(req, res) {
           c.source_name,
           c.product_type,
           c.name,
+          c.description,
           c.brand,
           c.model,
           c.category,
@@ -100,7 +101,7 @@ export default async function handler(req, res) {
         LEFT JOIN retailer_prices rp ON c.id = rp.component_id
         WHERE UPPER(c.category) = ?
         GROUP BY
-          c.id, c.source_name, c.product_type, c.name, c.brand, c.model,
+          c.id, c.source_name, c.product_type, c.name, c.description, c.brand, c.model,
           c.category, c.specs, c.image_url, c.product_url, c.availability
       )
       SELECT *
@@ -108,7 +109,7 @@ export default async function handler(req, res) {
       WHERE (? IS NULL OR min_price >= ?)
         AND (? IS NULL OR min_price <= ?)
         AND (? = '' OR LOWER(COALESCE(brand, '')) LIKE ?)
-        AND (? = '' OR LOWER(name) LIKE ? OR LOWER(category) LIKE ? OR LOWER(specs) LIKE ?)
+        AND (? = '' OR LOWER(name) LIKE ? OR LOWER(category) LIKE ? OR LOWER(COALESCE(description, '')) LIKE ? OR LOWER(specs) LIKE ?)
       ORDER BY
         CASE WHEN ? = 'price_desc' THEN min_price END DESC,
         CASE WHEN ? = 'name_desc' THEN name END DESC,
@@ -128,6 +129,7 @@ export default async function handler(req, res) {
         search ? `%${search}%` : '',
         search ? `%${search}%` : '',
         search ? `%${search}%` : '',
+        search ? `%${search}%` : '',
         sort,
         sort,
         sort,
@@ -144,6 +146,7 @@ export default async function handler(req, res) {
       return {
         id: row.id,
         name: row.name,
+        description: row.description || '',
         display_name: displayName,
         compact_name: displayName,
         category: row.category,

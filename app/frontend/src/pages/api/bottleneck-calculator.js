@@ -20,24 +20,57 @@ export default function handler(req, res) {
   const gpu = components.GPU || {};
   const psu = components.PSU || {};
 
-  if (cpu.socket_type && motherboard.socket_type && cpu.socket_type !== motherboard.socket_type) {
+  const pick = (source, keys) => {
+    for (const key of keys) {
+      const value = source?.[key];
+      if (value !== undefined && value !== null && value !== '') {
+        return value;
+      }
+    }
+    const specs = source?.specs;
+    if (specs && typeof specs === 'object') {
+      for (const key of keys) {
+        const value = specs[key];
+        if (value !== undefined && value !== null && value !== '') {
+          return value;
+        }
+      }
+    }
+    return null;
+  };
+
+  const parseNumber = (value) => {
+    if (value === null || value === undefined || value === '') {
+      return 0;
+    }
+    const match = String(value).replace(/,/g, '').match(/(\d+(?:\.\d+)?)/);
+    return match ? Number(match[1]) : 0;
+  };
+
+  const parseText = (value) => String(value || '').toUpperCase();
+
+  const cpuSocket = pick(cpu, ['socket_type', 'socket', 'cpu_socket']);
+  const motherboardSocket = pick(motherboard, ['socket_type', 'socket', 'cpu_socket']);
+  if (cpuSocket && motherboardSocket && parseText(cpuSocket) !== parseText(motherboardSocket)) {
     compatibility_issues.push({
-      message: `Socket mismatch: CPU (${cpu.socket_type}) and Motherboard (${motherboard.socket_type}) are incompatible.`,
+      message: `Socket mismatch: CPU (${cpuSocket}) and Motherboard (${motherboardSocket}) are incompatible.`,
     });
     score -= 35;
   }
 
-  if (motherboard.ram_type && ram.type && motherboard.ram_type !== ram.type) {
+  const motherboardRamType = pick(motherboard, ['ram_type', 'memory_type', 'type']);
+  const ramType = pick(ram, ['type', 'ram_type', 'memory_type']);
+  if (motherboardRamType && ramType && parseText(motherboardRamType) !== parseText(ramType)) {
     compatibility_issues.push({
-      message: `RAM mismatch: Motherboard supports ${motherboard.ram_type} but selected RAM is ${ram.type}.`,
+      message: `RAM mismatch: Motherboard supports ${motherboardRamType} but selected RAM is ${ramType}.`,
     });
     score -= 25;
   }
 
-  const cpuCores = Number(cpu.cores || 0);
-  const gpuVram = Number(gpu.vram_gb || 0);
-  const ramCapacity = Number(ram.capacity_gb || 0);
-  const psuWattage = Number(psu.wattage_w || 0);
+  const cpuCores = parseNumber(pick(cpu, ['cores', 'core_count']));
+  const gpuVram = parseNumber(pick(gpu, ['vram_gb', 'memory_gb', 'memory_size_gb']));
+  const ramCapacity = parseNumber(pick(ram, ['capacity_gb', 'size_gb', 'memory_size_gb']));
+  const psuWattage = parseNumber(pick(psu, ['wattage_w', 'wattage', 'power_w']));
 
   if (cpuCores > 0 && gpuVram > 0) {
     const balanceGap = Math.abs((cpuCores * 2) - gpuVram);
