@@ -157,7 +157,7 @@ function BuildSummary({
         <h2 className="mt-2 text-2xl font-black text-white">Your selected parts</h2>
       </div>
 
-      <div className="mb-4 max-h-[26rem] overflow-y-auto pr-1">
+      <div className="custom-scrollbar mb-4 max-h-[26rem] overflow-y-auto pr-2">
         {!hasSelectedParts && (
           <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.03] px-4 py-8 text-center">
             <p className="text-sm font-medium text-gray-300">No components selected yet.</p>

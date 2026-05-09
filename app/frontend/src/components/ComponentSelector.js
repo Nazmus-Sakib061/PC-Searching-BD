@@ -388,7 +388,7 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
               </div>
             </div>
 
-            <div ref={browserListRef} className="flex-1 overflow-y-auto pr-1">
+            <div ref={browserListRef} className="custom-scrollbar flex-1 overflow-y-auto pr-2">
               {filteredComponents.length === 0 ? (
                 <div className="grid min-h-[50vh] place-items-center rounded-[28px] border border-dashed border-white/10 bg-white/[0.03] p-8 text-center">
                   <div>
