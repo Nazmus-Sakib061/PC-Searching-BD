@@ -201,9 +201,9 @@ function BuildConfiguratorPage() {
   const componentTypes = ['CPU', 'GPU', 'Motherboard', 'RAM', 'Storage', 'PSU', 'Case', 'CPU Cooler'];
   const selectedCount = Object.values(selectedComponents).reduce((count, value) => {
     if (Array.isArray(value)) {
-      return count + value.length;
+      return count + value.filter((item) => item && item.id && Number(item.price || 0) > 0).length;
     }
-    return count + (value ? 1 : 0);
+    return count + (value && value.id && Number(value.price || 0) > 0 ? 1 : 0);
   }, 0);
 
   return (

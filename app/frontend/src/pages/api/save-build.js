@@ -2,7 +2,7 @@ import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import path from 'path';
 
-const dbPath = path.resolve(process.cwd(), '../pc_builder_db.sqlite');
+const dbPath = path.resolve(process.cwd(), '..', '..', 'pc_builder_db.sqlite');
 
 async function ensureTables(db) {
   await db.exec(`
