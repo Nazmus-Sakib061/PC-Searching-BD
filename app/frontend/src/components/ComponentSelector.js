@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 function compactText(value) {
   return String(value || '')
@@ -32,6 +32,7 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [isBrowserOpen, setIsBrowserOpen] = useState(false);
+  const browserListRef = useRef(null);
 
   const isMulti = ['GPU', 'RAM', 'Storage'].includes(componentType);
   const defaultOption = { name: `Select ${componentType}`, price: 0, component_type: componentType };
@@ -73,6 +74,13 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
     if (!isBrowserOpen) {
       return undefined;
     }
+
+    window.requestAnimationFrame(() => {
+      if (browserListRef.current) {
+        browserListRef.current.scrollTop = 0;
+      }
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    });
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -380,7 +388,7 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto pr-1">
+            <div ref={browserListRef} className="flex-1 overflow-y-auto pr-1">
               {filteredComponents.length === 0 ? (
                 <div className="grid min-h-[50vh] place-items-center rounded-[28px] border border-dashed border-white/10 bg-white/[0.03] p-8 text-center">
                   <div>

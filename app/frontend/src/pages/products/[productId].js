@@ -60,6 +60,22 @@ export default function ProductDetails() {
   };
 
   useEffect(() => {
+    if (!router.isReady) {
+      return undefined;
+    }
+
+    const handlePopState = () => {
+      router.replace('/configurator');
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [router]);
+
+  useEffect(() => {
     if (!productId) {
       return;
     }
