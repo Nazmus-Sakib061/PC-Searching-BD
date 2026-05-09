@@ -55,6 +55,15 @@ export default function ProductDetails() {
   const [isCalculating, setIsCalculating] = useState(false);
   const [calculatorStatus, setCalculatorStatus] = useState('Select parts to calculate bottleneck balance.');
 
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+      return;
+    }
+
+    router.push('/configurator');
+  };
+
   useEffect(() => {
     if (!productId) {
       return;
@@ -209,6 +218,16 @@ export default function ProductDetails() {
 
       <main className="mx-auto w-full max-w-[1800px] px-4 py-6 sm:px-6 lg:px-8">
         <section className="rounded-[34px] border border-white/10 bg-white/[0.04] p-5 shadow-[0_0_50px_rgba(0,180,255,0.08)] backdrop-blur-xl md:p-8">
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="rounded-xl border border-white/10 bg-black/25 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/5"
+            >
+              Back
+            </button>
+          </div>
+
           <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
             <div>
               <p className="inline-flex rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[4px] text-emerald-300">

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import SiteHeader from '../components/SiteHeader';
 
 function ComparisonResultsPage() {
+  const router = useRouter();
   const [comparisonData, setComparisonData] = useState([]);
   const [retailerNames, setRetailerNames] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +43,15 @@ function ComparisonResultsPage() {
     WebkitLineClamp: 2,
     WebkitBoxOrient: 'vertical',
     overflow: 'hidden',
+  };
+
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+      return;
+    }
+
+    router.push('/configurator');
   };
 
   return (
@@ -137,12 +148,13 @@ function ComparisonResultsPage() {
             )}
 
             <div className="mt-8 flex flex-wrap gap-4">
-              <a
-                href="/"
+              <button
+                type="button"
+                onClick={handleBack}
                 className="rounded-xl border border-white/10 px-5 py-3 text-sm font-semibold transition hover:bg-white/5"
               >
-                Back to Homepage
-              </a>
+                Back
+              </button>
               <a
                 href="/configurator"
                 className="rounded-xl bg-gradient-to-r from-blue-600 to-emerald-400 px-5 py-3 text-sm font-semibold text-black transition hover:scale-105"

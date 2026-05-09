@@ -5,6 +5,21 @@ import BuildSummary from '../components/BuildSummary';
 import SiteHeader from '../components/SiteHeader';
 
 const MULTI_SELECT_TYPES = new Set(['GPU', 'RAM', 'Storage']);
+const CONFIGURATOR_STATE_KEY = 'pc-bottleneck-configurator-state';
+
+function readPersistedConfiguratorState() {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(CONFIGURATOR_STATE_KEY) || window.sessionStorage.getItem(CONFIGURATOR_STATE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (error) {
+    console.warn('Unable to read persisted configurator state:', error);
+    return null;
+  }
+}
 
 function BuildConfiguratorPage() {
   const [selectedComponents, setSelectedComponents] = useState({});
@@ -19,6 +34,7 @@ function BuildConfiguratorPage() {
   const [analysisStatus, setAnalysisStatus] = useState('Select at least CPU, GPU, Motherboard, and RAM to analyze.');
   const [saveStatus, setSaveStatus] = useState('');
   const [buildName, setBuildName] = useState('My PC Build');
+  const [hasHydratedState, setHasHydratedState] = useState(false);
 
   const flattenSelections = useCallback((value) => {
     if (Array.isArray(value)) {
@@ -206,6 +222,40 @@ function BuildConfiguratorPage() {
     return count + (value && value.id && Number(value.price || 0) > 0 ? 1 : 0);
   }, 0);
 
+  useEffect(() => {
+    const persistedState = readPersistedConfiguratorState();
+
+    if (persistedState && typeof persistedState === 'object') {
+      if (persistedState.selectedComponents && typeof persistedState.selectedComponents === 'object') {
+        setSelectedComponents(persistedState.selectedComponents);
+      }
+
+      if (typeof persistedState.buildName === 'string' && persistedState.buildName.trim()) {
+        setBuildName(persistedState.buildName);
+      }
+    }
+
+    setHasHydratedState(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasHydratedState || typeof window === 'undefined') {
+      return;
+    }
+
+    try {
+      const serializedState = JSON.stringify({
+        selectedComponents,
+        buildName,
+      });
+
+      window.localStorage.setItem(CONFIGURATOR_STATE_KEY, serializedState);
+      window.sessionStorage.setItem(CONFIGURATOR_STATE_KEY, serializedState);
+    } catch (error) {
+      console.warn('Unable to persist configurator state:', error);
+    }
+  }, [buildName, hasHydratedState, selectedComponents]);
+
   return (
     <>
       <Head>
@@ -293,6 +343,7 @@ function BuildConfiguratorPage() {
                     selectedComponent={selectedComponents[type]}
                     onSelectComponent={handleComponentSelect}
                     onRemoveComponent={handleComponentRemove}
+                    isHydrated={hasHydratedState}
                   />
                 ))}
               </div>

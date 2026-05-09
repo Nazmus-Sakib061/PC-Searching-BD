@@ -22,7 +22,7 @@ function clampStyle(lines = 2) {
   };
 }
 
-function ComponentSelector({ componentType, selectedComponent, onSelectComponent, onRemoveComponent }) {
+function ComponentSelector({ componentType, selectedComponent, onSelectComponent, onRemoveComponent, isHydrated = true }) {
   const [components, setComponents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -53,7 +53,7 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
           ? selectedComponent.length > 0
           : !!selectedComponent && selectedComponent.name !== `Select ${componentType}`;
 
-        if (!hasSelection) {
+        if (isHydrated && !hasSelection) {
           onSelectComponent(componentType, defaultOption);
         }
       } catch (err) {
@@ -67,7 +67,7 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
     if (componentType) {
       fetchComponents();
     }
-  }, [componentType, onSelectComponent, selectedComponent, sortOrder]);
+  }, [componentType, isHydrated, onSelectComponent, selectedComponent, sortOrder]);
 
   useEffect(() => {
     if (!isBrowserOpen) {
@@ -105,7 +105,6 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
         component.model,
         component.category,
         component.component_type,
-        JSON.stringify(component.specs || {}),
       ]
         .filter(Boolean)
         .join(' ')
