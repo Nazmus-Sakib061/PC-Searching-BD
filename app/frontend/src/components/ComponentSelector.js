@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 function compactText(value) {
   return String(value || '')
@@ -156,11 +156,20 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
     setIsBrowserOpen(false);
   };
 
+  const handleBrowserListWheel = useCallback((event) => {
+    if (!browserListRef.current) {
+      return;
+    }
+
+    browserListRef.current.scrollTop += event.deltaY;
+    event.preventDefault();
+  }, []);
+
   const removeOneText = 'Remove one';
 
   return (
     <>
-      <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-4 shadow-[0_0_24px_rgba(0,0,0,0.18)] backdrop-blur-sm transition hover:-translate-y-0.5 hover:border-cyan-500/30 hover:bg-white/[0.06]">
+      <div className="crystal-card surface-shell rounded-[28px] p-4 transition hover:-translate-y-0.5 hover:border-sky-400/24">
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>
             <h3 className="text-lg font-semibold tracking-wide text-white">{componentType}</h3>
@@ -168,7 +177,7 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
               {filteredComponents.length.toLocaleString()} products available
             </p>
           </div>
-          <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[2px] text-gray-400">
+          <span className="blue-outline-badge rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[2px]">
             Live List
           </span>
         </div>
@@ -178,7 +187,7 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
 
         {!isLoading && !error && (
           <div className="space-y-3">
-            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+            <div className="rounded-2xl border border-slate-700/70 bg-[#050c1a]/82 p-4">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                 <div className="min-w-0">
                   <div className="flex items-center gap-3">
@@ -201,7 +210,7 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
                       {selectedItems.map((item, index) => (
                         <span
                           key={`${item.id}-${index}`}
-                          className="relative inline-flex min-h-8 items-center rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 pr-9 text-[11px] font-semibold uppercase tracking-[2px] text-emerald-100"
+                          className="relative inline-flex min-h-8 items-center rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1 pr-9 text-[11px] font-semibold uppercase tracking-[2px] text-sky-100"
                           title={item.display_name || item.name}
                         >
                           <span className="block max-w-full" style={clampStyle(1)}>{item.display_name || item.name}</span>
@@ -226,29 +235,29 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
                 <button
                   type="button"
                   onClick={() => setIsBrowserOpen(true)}
-                  className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-emerald-400 px-4 py-3 text-sm font-bold text-black transition hover:scale-[1.01]"
+                  className="primary-glow-button inline-flex items-center justify-center rounded-xl px-4 py-3 text-sm font-bold transition hover:translate-y-[-1px]"
                 >
                   Browse Full List
                 </button>
               </div>
 
               <div className="mt-4 grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
-                <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
-                  <div className="text-gray-500">Results</div>
+                  <div className="rounded-xl border border-slate-700/70 bg-[#071121]/76 px-3 py-2">
+                  <div className="text-slate-500">Results</div>
                   <div className="mt-1 font-semibold text-white">{filteredComponents.length}</div>
                 </div>
-                <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
-                  <div className="text-gray-500">Sort</div>
+                <div className="rounded-xl border border-slate-700/70 bg-[#071121]/76 px-3 py-2">
+                  <div className="text-slate-500">Sort</div>
                   <div className="mt-1 font-semibold text-white">
                     {sortOrder === 'price_asc' ? 'Low to High' : sortOrder === 'price_desc' ? 'High to Low' : 'A-Z'}
                   </div>
                 </div>
-                <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
-                  <div className="text-gray-500">Currency</div>
+                <div className="rounded-xl border border-slate-700/70 bg-[#071121]/76 px-3 py-2">
+                  <div className="text-slate-500">Currency</div>
                   <div className="mt-1 font-semibold text-white">$</div>
                 </div>
-                <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
-                  <div className="text-gray-500">Brand Filter</div>
+                <div className="rounded-xl border border-slate-700/70 bg-[#071121]/76 px-3 py-2">
+                  <div className="text-slate-500">Brand Filter</div>
                   <div className="mt-1 font-semibold text-white">{brandFilter || 'All'}</div>
                 </div>
               </div>
@@ -260,12 +269,12 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder={`Search ${componentType.toLowerCase()}...`}
-                className="w-full rounded-xl border border-white/10 bg-[#05080d] px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                className="w-full rounded-xl border border-slate-700/70 bg-[#05080d] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20"
               />
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-[#05080d] px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                className="w-full rounded-xl border border-slate-700/70 bg-[#05080d] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20"
               >
                 <option value="price_asc">Price: Low to High</option>
                 <option value="price_desc">Price: High to Low</option>
@@ -277,7 +286,7 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
               <select
                 value={brandFilter}
                 onChange={(e) => setBrandFilter(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-[#05080d] px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                className="w-full rounded-xl border border-slate-700/70 bg-[#05080d] px-4 py-3 text-sm text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20"
               >
                 <option value="">All Brands</option>
                 {brandOptions.map((brand) => (
@@ -292,7 +301,7 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
                 value={minPrice}
                 onChange={(e) => setMinPrice(e.target.value)}
                 placeholder="Min price"
-                className="w-full rounded-xl border border-white/10 bg-[#05080d] px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                className="w-full rounded-xl border border-slate-700/70 bg-[#05080d] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20"
               />
               <input
                 type="number"
@@ -300,7 +309,7 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
                 placeholder="Max price"
-                className="w-full rounded-xl border border-white/10 bg-[#05080d] px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                className="w-full rounded-xl border border-slate-700/70 bg-[#05080d] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20"
               />
             </div>
 
@@ -314,43 +323,43 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
       </div>
 
       {isBrowserOpen && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-[#020406]/95 backdrop-blur-xl">
-          <div className="border-b border-white/10 bg-black/50 px-4 py-4 sm:px-6 lg:px-8">
+        <div className="fixed inset-0 z-50 flex flex-col bg-[#020817]">
+          <div className="border-b border-slate-700/70 bg-[#020817] px-4 py-4 sm:px-6 lg:px-8">
             <div className="mx-auto flex w-full max-w-[1800px] items-center justify-between gap-4">
               <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-[4px] text-emerald-300">
+                <p className="text-xs font-semibold uppercase tracking-[4px] text-sky-300">
                   {componentType} Catalog
                 </p>
                 <h2 className="mt-1 text-xl font-black text-white sm:text-2xl">
                   Choose a part from the full-screen list
                 </h2>
-                <p className="mt-1 text-sm text-gray-400">
+                <p className="mt-1 text-sm text-slate-400">
                   {filteredComponents.length.toLocaleString()} products, sorted by {sortOrder.replace('_', ' ')}.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsBrowserOpen(false)}
-                className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+                className="secondary-glow-button rounded-xl px-4 py-2 text-sm font-semibold transition hover:border-sky-300/20 hover:bg-sky-500/5"
               >
                 Close
               </button>
             </div>
           </div>
 
-          <div className="mx-auto flex w-full max-w-[1800px] flex-1 flex-col gap-5 overflow-hidden px-4 py-4 sm:px-6 lg:px-8">
+          <div className="mx-auto flex w-full max-w-[1800px] min-h-0 flex-1 flex-col gap-5 overflow-hidden px-4 py-4 sm:px-6 lg:px-8">
             <div className="grid gap-3 lg:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr]">
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder={`Search ${componentType.toLowerCase()}...`}
-                className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-4 text-sm text-white outline-none transition placeholder:text-gray-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                className="w-full rounded-2xl border border-slate-700/70 bg-[#061120]/90 px-4 py-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20"
               />
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-4 text-sm text-white outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                className="w-full rounded-2xl border border-slate-700/70 bg-[#061120]/90 px-4 py-4 text-sm text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20"
               >
                 <option value="price_asc">Price: Low to High</option>
                 <option value="price_desc">Price: High to Low</option>
@@ -359,7 +368,7 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
               <select
                 value={brandFilter}
                 onChange={(e) => setBrandFilter(e.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-4 text-sm text-white outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                className="w-full rounded-2xl border border-slate-700/70 bg-[#061120]/90 px-4 py-4 text-sm text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20"
               >
                 <option value="">All Brands</option>
                 {brandOptions.map((brand) => (
@@ -375,7 +384,7 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
                   value={minPrice}
                   onChange={(e) => setMinPrice(e.target.value)}
                   placeholder="Min price"
-                  className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-4 text-sm text-white outline-none transition placeholder:text-gray-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                  className="w-full rounded-2xl border border-slate-700/70 bg-[#061120]/90 px-4 py-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20"
                 />
                 <input
                   type="number"
@@ -383,17 +392,23 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(e.target.value)}
                   placeholder="Max price"
-                  className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-4 text-sm text-white outline-none transition placeholder:text-gray-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                  className="w-full rounded-2xl border border-slate-700/70 bg-[#061120]/90 px-4 py-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20"
                 />
               </div>
             </div>
 
-            <div ref={browserListRef} className="custom-scrollbar flex-1 overflow-y-auto pr-2">
+            <div
+              ref={browserListRef}
+              className="custom-scrollbar min-h-0 flex-1 overscroll-contain overflow-y-scroll pr-3"
+              style={{ scrollbarGutter: 'stable', WebkitOverflowScrolling: 'touch' }}
+              tabIndex={0}
+              onWheel={handleBrowserListWheel}
+            >
               {filteredComponents.length === 0 ? (
-                <div className="grid min-h-[50vh] place-items-center rounded-[28px] border border-dashed border-white/10 bg-white/[0.03] p-8 text-center">
+                  <div className="crystal-card grid min-h-[50vh] place-items-center rounded-[28px] border border-dashed border-slate-700/70 bg-[#071121]/72 p-8 text-center">
                   <div>
                     <div className="text-2xl font-black text-white">No products found</div>
-                    <p className="mt-3 max-w-xl text-sm leading-7 text-gray-400">
+                    <p className="mt-3 max-w-xl text-sm leading-7 text-slate-400">
                       This category currently has no matching live items. Try clearing filters or picking another search term.
                     </p>
                   </div>
@@ -408,10 +423,10 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
                     return (
                       <div
                         key={component.id}
-                        className={`group relative rounded-[28px] border p-4 text-left transition duration-200 hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(0,180,255,0.12)] ${
+                        className={`crystal-card group relative rounded-[28px] border p-4 text-left transition duration-200 hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(0,180,255,0.12)] ${
                           isSelected
-                            ? 'border-emerald-400/40 bg-emerald-400/10'
-                            : 'border-white/10 bg-white/[0.04] hover:border-cyan-500/30 hover:bg-white/[0.06]'
+                            ? 'border-sky-400/36 bg-sky-400/10'
+                            : 'border-slate-700/70 bg-[#06101f]/82 hover:border-sky-400/24 hover:bg-[#09152a]'
                         }`}
                       >
                         {isSelected && isMulti ? (
@@ -422,7 +437,7 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
                               e.stopPropagation();
                               handleRemove(component.id);
                             }}
-                            className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-400/30 bg-red-500/15 text-sm font-black text-red-100 transition hover:bg-red-500/30"
+                          className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-400/30 bg-red-500/15 text-sm font-black text-red-100 transition hover:bg-red-500/30"
                             aria-label={`Remove ${displayName}`}
                             title="Remove one"
                           >
@@ -443,32 +458,32 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
                               {displayName}
                             </div>
                           </div>
-                          <div className="shrink-0 rounded-full border border-white/10 bg-black/25 px-3 py-1 text-[11px] font-semibold uppercase tracking-[2px] text-gray-300">
+                          <div className="shrink-0 rounded-full border border-slate-700/70 bg-[#050c1b] px-3 py-1 text-[11px] font-semibold uppercase tracking-[2px] text-slate-300">
                             {component.category}
                           </div>
                         </div>
 
-                        <div className="mb-4 rounded-2xl border border-white/10 bg-black/25 p-3">
-                          <div className="text-xs uppercase tracking-[3px] text-gray-500">Price</div>
-                          <div className="mt-1 text-2xl font-black text-emerald-300">{formatPrice(component.price)}</div>
-                          <div className="mt-1 text-[11px] text-gray-500">Live Newegg price</div>
+                        <div className="mb-4 rounded-2xl border border-slate-700/70 bg-[#050c1b] p-3">
+                          <div className="text-xs uppercase tracking-[3px] text-slate-500">Price</div>
+                          <div className="mt-1 text-2xl font-black text-sky-300">{formatPrice(component.price)}</div>
+                          <div className="mt-1 text-[11px] text-slate-500">Live Newegg price</div>
                         </div>
 
                         {component.description ? (
                           <div
-                            className="mb-4 rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-sm leading-6 text-gray-300"
+                            className="mb-4 rounded-2xl border border-slate-700/70 bg-[#071121]/70 p-3 text-sm leading-6 text-slate-300"
                             style={clampStyle(3)}
                           >
                             {component.description}
                           </div>
                         ) : null}
 
-                        <div className="mb-4 text-xs uppercase tracking-[3px] text-gray-500">
+                        <div className="mb-4 text-xs uppercase tracking-[3px] text-slate-500">
                           {component.availability || 'Availability unknown'}
                         </div>
 
                         <div className="flex items-center justify-between gap-3">
-                          <span className="text-xs font-semibold uppercase tracking-[3px] text-gray-400">
+                          <span className="text-xs font-semibold uppercase tracking-[3px] text-slate-400">
                             {isMulti ? (selectedCount > 0 ? 'Add +1' : 'Add to build') : 'Select to add'}
                           </span>
                           <div className="flex items-center gap-2">
@@ -484,7 +499,7 @@ function ComponentSelector({ componentType, selectedComponent, onSelectComponent
                             <button
                               type="button"
                               onClick={() => handleSelect(component)}
-                              className="rounded-xl bg-gradient-to-r from-blue-600 to-emerald-400 px-3 py-2 text-xs font-bold text-black"
+                              className="primary-glow-button rounded-xl px-3 py-2 text-xs font-bold"
                             >
                               {isSelected && isMulti ? `Added x${selectedCount}` : 'Choose'}
                             </button>

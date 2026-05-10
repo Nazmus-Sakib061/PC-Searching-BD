@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 import ComponentSelector from '../components/ComponentSelector';
 import BuildSummary from '../components/BuildSummary';
@@ -22,6 +23,7 @@ function readPersistedConfiguratorState() {
 }
 
 function BuildConfiguratorPage() {
+  const router = useRouter();
   const [selectedComponents, setSelectedComponents] = useState({});
   const [totalPrice, setTotalPrice] = useState(0);
   const [compatibilityIssues, setCompatibilityIssues] = useState([]);
@@ -256,6 +258,24 @@ function BuildConfiguratorPage() {
     }
   }, [buildName, hasHydratedState, selectedComponents]);
 
+  useEffect(() => {
+    if (!router.isReady || typeof window === 'undefined') {
+      return;
+    }
+
+    const hash = window.location.hash;
+    if (!hash) {
+      return;
+    }
+
+    const target = document.querySelector(hash);
+    if (target) {
+      window.requestAnimationFrame(() => {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+  }, [router.isReady, router.asPath]);
+
   return (
     <>
       <Head>
@@ -267,71 +287,71 @@ function BuildConfiguratorPage() {
       </Head>
 
       <div className="min-h-screen bg-[#020406] text-white">
-        <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_14%_16%,rgba(0,140,255,0.28),transparent_18%),radial-gradient(circle_at_86%_80%,rgba(80,255,150,0.20),transparent_18%),radial-gradient(circle_at_70%_12%,rgba(0,220,255,0.14),transparent_20%),linear-gradient(to_bottom,#010204,#020406_46%,#010101)]" />
-        <div className="fixed inset-x-0 bottom-0 h-24 bg-[linear-gradient(90deg,rgba(0,140,255,0.18),transparent_20%,transparent_80%,rgba(80,255,150,0.20))] opacity-70" />
+        <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_14%_16%,rgba(59,130,246,0.30),transparent_18%),radial-gradient(circle_at_86%_80%,rgba(30,64,175,0.22),transparent_18%),radial-gradient(circle_at_70%_12%,rgba(56,189,248,0.16),transparent_20%),linear-gradient(to_bottom,#01030a,#020817_46%,#01030a)]" />
+        <div className="fixed inset-x-0 bottom-0 h-24 bg-[linear-gradient(90deg,rgba(37,99,235,0.18),transparent_20%,transparent_80%,rgba(56,189,248,0.20))] opacity-80" />
         <SiteHeader active="build" />
 
         <main className="mx-auto w-full max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8">
           <section className="grid gap-8 xl:grid-cols-[1.35fr_0.65fr]">
-            <div className="rounded-[34px] border border-white/10 bg-white/[0.04] p-5 shadow-[0_0_50px_rgba(0,180,255,0.08)] backdrop-blur-xl md:p-8">
+            <div className="surface-shell rounded-[34px] p-5 md:p-8">
               <div className="mb-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
                 <div>
-                  <p className="mb-4 inline-flex rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-[10px] font-semibold uppercase tracking-[4px] text-emerald-300">
+                  <p className="blue-badge mb-4 inline-flex rounded-full px-4 py-2 text-[10px] font-semibold uppercase tracking-[4px]">
                     Build Configurator
                   </p>
-                  <h1 className="max-w-3xl text-xl font-black leading-[1.02] md:text-3xl lg:text-4xl">
-                    Design a clean build with live pricing and compatibility checks.
+                  <h1 className="max-w-3xl text-xl font-black leading-[1.02] text-slate-50 md:text-3xl lg:text-4xl">
+                    Design a blue-lit build deck with live pricing and compatibility checks.
                   </h1>
-                  <p className="mt-5 max-w-2xl text-sm leading-7 text-gray-300">
-                    Pick parts from the catalog, see totals update instantly, and save the final build when you are done.
+                  <p className="mt-5 max-w-2xl text-sm leading-7 text-slate-300">
+                    Pick parts from the catalog, track totals in real time, and shape the whole setup inside a darker, cleaner control surface.
                   </p>
                   <div className="mt-6 max-w-md">
-                    <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[3px] text-gray-400">
+                    <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[3px] text-slate-400">
                       Build Name
                     </label>
                     <input
                       type="text"
                       value={buildName}
                       onChange={(e) => setBuildName(e.target.value)}
-                      className="w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                      className="w-full rounded-2xl border border-slate-700/80 bg-[#050b1b]/90 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20"
                       placeholder="Enter build name"
                     />
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-cyan-500/20 bg-black/35 p-5 shadow-[0_0_30px_rgba(0,180,255,0.08)]">
-                  <div className="text-[10px] uppercase tracking-[4px] text-emerald-300">Analysis Status</div>
-                  <div className="mt-2 text-[13px] leading-6 text-gray-300">{analysisStatus}</div>
+                <div className="blue-stat-card rounded-3xl p-5">
+                  <div className="text-[10px] uppercase tracking-[4px] text-sky-300">Analysis Status</div>
+                  <div className="mt-2 text-[13px] leading-6 text-slate-300">{analysisStatus}</div>
                 </div>
               </div>
 
               <div className="mb-8 grid gap-4 sm:grid-cols-3">
-                <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
-                  <div className="text-[10px] uppercase tracking-[3px] text-gray-400">Selected Parts</div>
+                <div className="blue-stat-card rounded-3xl p-5">
+                  <div className="text-[10px] uppercase tracking-[3px] text-slate-400">Selected Parts</div>
                   <div className="mt-2 text-2xl font-black">{selectedCount}</div>
                 </div>
-                <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
-                  <div className="text-[10px] uppercase tracking-[3px] text-gray-400">Estimated Total</div>
+                <div className="blue-stat-card rounded-3xl p-5">
+                  <div className="text-[10px] uppercase tracking-[3px] text-slate-400">Estimated Total</div>
                   <div className="mt-2 text-2xl font-black">$ {Number(totalPrice).toLocaleString()}</div>
                 </div>
-                <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
-                  <div className="text-[10px] uppercase tracking-[3px] text-gray-400">Bottleneck</div>
+                <div className="blue-stat-card rounded-3xl p-5">
+                  <div className="text-[10px] uppercase tracking-[3px] text-slate-400">Bottleneck</div>
                   <div className="mt-2 text-2xl font-black">
                     {bottleneckScore !== null ? `${Number(bottleneckScore).toFixed(1)}/100` : '--'}
                   </div>
                 </div>
               </div>
 
-              <div className="mb-5 flex items-end justify-between gap-4">
+              <div id="select-components" className="mb-5 flex items-end justify-between gap-4 scroll-mt-8">
                 <div>
                   <h2 className="text-xl font-semibold">Select Components</h2>
-                  <p className="mt-1 text-[13px] text-gray-400">Pricing updates from SQLite</p>
+                  <p className="mt-1 text-[13px] text-slate-400">Pricing updates from SQLite</p>
                 </div>
-                <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[2px] text-emerald-300">
+                <span className="blue-badge rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[2px]">
                   Live Catalog
                 </span>
               </div>
-              <div className="mb-5 rounded-2xl border border-cyan-500/10 bg-cyan-500/5 px-4 py-3 text-[13px] text-cyan-100">
+              <div className="mb-5 rounded-2xl border border-sky-400/16 bg-sky-400/7 px-4 py-3 text-[13px] text-sky-100">
                 RAM, GPU, and Storage can be added multiple times. Pick the same category again to stack parts.
               </div>
 
@@ -349,7 +369,7 @@ function BuildConfiguratorPage() {
               </div>
             </div>
 
-            <div className="xl:sticky xl:top-6 xl:self-start xl:justify-self-end xl:w-full xl:max-w-[420px]">
+            <div id="build-summary" className="xl:sticky xl:top-6 xl:self-start xl:justify-self-end xl:w-full xl:max-w-[420px] scroll-mt-8">
               <BuildSummary
                 selectedComponents={selectedComponents}
                 totalPrice={totalPrice}

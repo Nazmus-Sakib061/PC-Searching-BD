@@ -143,18 +143,18 @@ function BuildSummary({
   const barWidth = Math.max(6, powerScore);
   const barGradient =
     powerScore >= 80
-      ? 'linear-gradient(90deg, #22d3ee 0%, #34d399 55%, #a3e635 100%)'
+      ? 'linear-gradient(90deg, #7dd3fc 0%, #38bdf8 45%, #2563eb 100%)'
       : powerScore >= 55
-        ? 'linear-gradient(90deg, #3b82f6 0%, #22d3ee 55%, #34d399 100%)'
+        ? 'linear-gradient(90deg, #60a5fa 0%, #38bdf8 55%, #2563eb 100%)'
         : powerScore >= 30
-          ? 'linear-gradient(90deg, #3b82f6 0%, #38bdf8 55%, #22d3ee 100%)'
+          ? 'linear-gradient(90deg, #3b82f6 0%, #38bdf8 55%, #0ea5e9 100%)'
           : 'linear-gradient(90deg, #64748b 0%, #94a3b8 55%, #cbd5e1 100%)';
 
   return (
-    <div className="sticky top-6 rounded-[24px] border border-cyan-500/20 bg-black/35 p-5 shadow-[0_0_40px_rgba(0,180,255,0.05)] backdrop-blur-sm md:p-6">
+    <div className="surface-shell sticky top-6 rounded-[24px] p-5 md:p-6">
       <div className="mb-5">
-        <p className="text-xs font-semibold uppercase tracking-[3px] text-emerald-300">Build Summary</p>
-        <h2 className="mt-2 text-2xl font-black text-white">Your selected parts</h2>
+        <p className="text-xs font-semibold uppercase tracking-[3px] text-sky-300">Build Summary</p>
+        <h2 className="mt-2 text-2xl font-black text-slate-50">Your selected parts</h2>
       </div>
 
       <div className="custom-scrollbar mb-4 max-h-[26rem] overflow-y-auto pr-2">
@@ -166,7 +166,7 @@ function BuildSummary({
         )}
 
         {entries.map(({ type, comp, index }) => (
-          <div key={`${type}-${comp.id || index}`} className="flex items-start justify-between gap-4 border-b border-white/10 py-3">
+          <div key={`${type}-${comp.id || index}`} className="flex items-start justify-between gap-4 border-b border-slate-700/70 py-3">
             <div className="min-w-0 flex-1">
               <div className="text-[13px] font-semibold leading-5 text-white" style={clampStyle(2)}>
                 {comp.display_name || comp.name}
@@ -188,7 +188,7 @@ function BuildSummary({
                   x
                 </button>
               ) : null}
-              <span className="shrink-0 text-sm font-semibold text-emerald-300">
+              <span className="shrink-0 text-sm font-semibold text-sky-300">
                 ${Number(comp.price).toLocaleString()}
               </span>
             </div>
@@ -196,31 +196,31 @@ function BuildSummary({
         ))}
       </div>
 
-      <div className="mt-4 border-t border-white/10 pt-4">
+      <div className="mt-4 border-t border-slate-700/70 pt-4">
         <div className="flex justify-between text-xl font-black text-white">
           <span>Total Price</span>
-          <span className="text-emerald-300">${Number(totalPrice).toLocaleString()}</span>
+          <span className="text-sky-300">${Number(totalPrice).toLocaleString()}</span>
         </div>
       </div>
 
-      <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+      <div className="mt-4 rounded-2xl border border-slate-700/70 bg-[#071122]/78 p-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <div className="text-[10px] uppercase tracking-[3px] text-gray-500">Performance Meter</div>
+            <div className="text-[10px] uppercase tracking-[3px] text-slate-500">Performance Meter</div>
             <div className="mt-1 text-base font-semibold text-white capitalize">{powerLabel}</div>
           </div>
           <div className="text-right">
             <div className="text-2xl font-black text-white">{powerScore}</div>
-            <div className="text-[10px] uppercase tracking-[3px] text-gray-500">Power</div>
+            <div className="text-[10px] uppercase tracking-[3px] text-slate-500">Power</div>
           </div>
         </div>
-        <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/10">
+        <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-800/90">
           <div
             className="h-full rounded-full transition-all duration-500"
             style={{ width: `${barWidth}%`, background: barGradient }}
           />
         </div>
-        <div className="mt-3 flex items-center justify-between text-[10px] uppercase tracking-[2px] text-gray-500">
+        <div className="mt-3 flex items-center justify-between text-[10px] uppercase tracking-[2px] text-slate-500">
           <span>Slow</span>
           <span>Medium</span>
           <span>High</span>
@@ -242,11 +242,11 @@ function BuildSummary({
       )}
 
       {suggestions && suggestions.length > 0 && (
-        <div className="mt-4 rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-4 text-cyan-50">
-          <h3 className="font-semibold text-cyan-100">Suggestions</h3>
+        <div className="mt-4 rounded-2xl border border-sky-400/20 bg-sky-400/10 p-4 text-sky-50">
+          <h3 className="font-semibold text-sky-100">Suggestions</h3>
           <ul className="mt-2 space-y-2">
             {suggestions.map((item, index) => (
-              <li key={index} className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm">
+              <li key={index} className="rounded-xl border border-slate-700/70 bg-[#040c18] px-3 py-2 text-sm">
                 {item}
               </li>
             ))}
@@ -254,10 +254,10 @@ function BuildSummary({
         </div>
       )}
 
-      {isLoadingBuild && <p className="mt-4 text-center text-cyan-300">Calculating build performance...</p>}
+      {isLoadingBuild && <p className="mt-4 text-center text-sky-300">Calculating build performance...</p>}
 
       {bottleneckScore !== null && !isLoadingBuild && (
-        <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-emerald-100">
+        <div className="mt-4 rounded-2xl border border-sky-400/20 bg-sky-400/10 p-4 text-sky-100">
           <h3 className="text-sm font-semibold">Bottleneck Score: {Number(bottleneckScore).toFixed(1)}/100</h3>
           <p className="mt-1 text-[13px] text-cyan-100/80">Analysis based on component balance.</p>
         </div>

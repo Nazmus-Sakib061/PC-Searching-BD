@@ -202,7 +202,7 @@ export default function ProductDetails() {
       <div className="min-h-screen bg-[#020406] text-white">
         <SiteHeader />
         <div className="mx-auto max-w-[1600px] px-4 py-16 sm:px-6 lg:px-8">
-          <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-8 text-red-400">
+          <div className="surface-shell rounded-[28px] p-8 text-red-300">
             {error}
           </div>
         </div>
@@ -223,17 +223,17 @@ export default function ProductDetails() {
   const bestPrice = prices.length > 0 ? prices[0] : null;
 
   return (
-    <div className="min-h-screen bg-[#020406] text-white">
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_18%_18%,rgba(0,140,255,0.2),transparent_26%),radial-gradient(circle_at_82%_22%,rgba(80,255,150,0.15),transparent_22%),linear-gradient(to_bottom,#020406,#010101)]" />
+      <div className="min-h-screen bg-[#020406] text-white">
+      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_18%_18%,rgba(59,130,246,0.22),transparent_26%),radial-gradient(circle_at_82%_22%,rgba(56,189,248,0.12),transparent_22%),linear-gradient(to_bottom,#020611,#01030a)]" />
       <SiteHeader />
 
       <main className="mx-auto w-full max-w-[1800px] px-4 py-6 sm:px-6 lg:px-8">
-        <section className="rounded-[34px] border border-white/10 bg-white/[0.04] p-5 shadow-[0_0_50px_rgba(0,180,255,0.08)] backdrop-blur-xl md:p-8">
+        <section className="surface-shell rounded-[34px] p-5 md:p-8">
           <div className="mb-6 flex items-center justify-between gap-4">
             <button
               type="button"
               onClick={handleBack}
-              className="rounded-xl border border-white/10 bg-black/25 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/5"
+              className="secondary-glow-button rounded-2xl px-4 py-2 text-sm font-semibold transition hover:border-sky-300/20 hover:bg-sky-500/5"
             >
               Back to Configurator
             </button>
@@ -241,40 +241,40 @@ export default function ProductDetails() {
 
           <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
             <div>
-              <p className="inline-flex rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[4px] text-emerald-300">
+              <p className="blue-badge inline-flex rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[4px]">
                 Product Details
               </p>
-              <h1 className="mt-4 text-3xl font-black leading-[1.05] md:text-5xl">
+              <h1 className="mt-4 text-3xl font-black leading-[1.05] text-slate-50 md:text-5xl">
                 {product.display_name || product.name}
               </h1>
-              <p className="mt-4 max-w-3xl text-base leading-8 text-gray-300" style={clampStyle(4)}>
+              <p className="mt-4 max-w-3xl text-base leading-8 text-slate-300" style={clampStyle(4)}>
                 {product.component_type || product.category}
               </p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-3xl border border-white/10 bg-black/35 p-5">
-                <div className="text-xs uppercase tracking-[3px] text-gray-500">Best Price</div>
-                <div className="mt-2 text-3xl font-black text-emerald-300">
+              <div className="blue-stat-card rounded-3xl p-5">
+                <div className="text-xs uppercase tracking-[3px] text-slate-500">Best Price</div>
+                <div className="mt-2 text-3xl font-black text-sky-300">
                   {bestPrice ? formatPrice(bestPrice.price) : '-'}
                 </div>
-                <div className="mt-2 text-sm text-gray-400">
+                <div className="mt-2 text-sm text-slate-400">
                   {bestPrice ? bestPrice.retailer_name : 'No retailer data'}
                 </div>
               </div>
-              <div className="rounded-3xl border border-white/10 bg-black/35 p-5">
-                <div className="text-xs uppercase tracking-[3px] text-gray-500">Price Rows</div>
+              <div className="blue-stat-card rounded-3xl p-5">
+                <div className="text-xs uppercase tracking-[3px] text-slate-500">Price Rows</div>
                 <div className="mt-2 text-3xl font-black text-white">{prices.length}</div>
-                <div className="mt-2 text-sm text-gray-400">Retailer offers in the live catalog</div>
+                <div className="mt-2 text-sm text-slate-400">Retailer offers in the live catalog</div>
               </div>
             </div>
           </div>
 
           <div className="mt-8 grid gap-6 xl:grid-cols-[1.5fr_0.5fr]">
-            <div className="rounded-[28px] border border-white/10 bg-black/25 p-4 sm:p-6">
+            <div className="rounded-[28px] border border-slate-700/70 bg-[#030917]/72 p-4 sm:p-6">
               <div className="mb-4 flex items-center justify-between gap-4">
                 <h2 className="text-2xl font-semibold text-white">Price List</h2>
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs uppercase tracking-[3px] text-gray-400">
+                <span className="blue-outline-badge rounded-full px-3 py-1 text-xs uppercase tracking-[3px]">
                   Sorted Low to High
                 </span>
               </div>
@@ -291,18 +291,18 @@ export default function ProductDetails() {
                       href={priceRow.url || '#'}
                       target="_blank"
                       rel="noreferrer"
-                      className="grid gap-3 rounded-[22px] border border-white/10 bg-white/[0.04] p-4 transition hover:border-cyan-500/30 hover:bg-white/[0.06] md:grid-cols-[1fr_auto_auto]"
+                      className="grid gap-3 rounded-[22px] border border-slate-700/70 bg-[#071122]/84 p-4 transition hover:border-sky-400/28 hover:bg-[#09162b] md:grid-cols-[1fr_auto_auto]"
                     >
                       <div className="min-w-0">
-                        <div className="text-xs uppercase tracking-[3px] text-gray-500">Retailer</div>
+                        <div className="text-xs uppercase tracking-[3px] text-slate-500">Retailer</div>
                         <div className="mt-2 text-lg font-semibold text-white">{priceRow.retailer_name}</div>
                       </div>
                       <div>
-                        <div className="text-xs uppercase tracking-[3px] text-gray-500">Price</div>
-                        <div className="mt-2 text-lg font-bold text-emerald-300">{formatPrice(priceRow.price)}</div>
+                        <div className="text-xs uppercase tracking-[3px] text-slate-500">Price</div>
+                        <div className="mt-2 text-lg font-bold text-sky-300">{formatPrice(priceRow.price)}</div>
                       </div>
                       <div className="flex items-center">
-                        <span className="rounded-xl bg-gradient-to-r from-blue-600 to-emerald-400 px-4 py-2 text-sm font-bold text-black">
+                        <span className="primary-glow-button rounded-xl px-4 py-2 text-sm font-bold">
                           View Offer
                         </span>
                       </div>
@@ -311,7 +311,7 @@ export default function ProductDetails() {
                 </div>
               )}
 
-              <div className="mt-6 rounded-[28px] border border-white/10 bg-white/[0.03] p-4 sm:p-6">
+              <div className="mt-6 rounded-[28px] border border-slate-700/70 bg-[#06101f]/72 p-4 sm:p-6">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <h2 className="text-2xl font-semibold text-white">Bottleneck Calculator</h2>
@@ -322,7 +322,7 @@ export default function ProductDetails() {
                   <button
                     type="button"
                     onClick={runBottleneck}
-                    className="rounded-xl bg-gradient-to-r from-blue-600 to-emerald-400 px-4 py-2 text-sm font-bold text-black transition hover:scale-[1.01]"
+                    className="primary-glow-button rounded-xl px-4 py-2 text-sm font-bold transition hover:translate-y-[-1px]"
                     disabled={isCalculating}
                   >
                     {isCalculating ? 'Calculating...' : 'Calculate'}
@@ -331,10 +331,10 @@ export default function ProductDetails() {
 
                 <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
                   {['CPU', 'GPU', 'Motherboard', 'RAM', 'PSU'].map((slot) => (
-                    <div key={slot} className="rounded-2xl border border-white/10 bg-black/35 p-3">
-                      <label className="mb-2 block text-xs uppercase tracking-[3px] text-gray-500">{slot}</label>
+                    <div key={slot} className="rounded-2xl border border-slate-700/70 bg-[#050c1b]/88 p-3">
+                      <label className="mb-2 block text-xs uppercase tracking-[3px] text-slate-500">{slot}</label>
                       <select
-                        className="w-full rounded-xl border border-white/10 bg-[#05080d] px-3 py-2 text-sm text-white outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                        className="w-full rounded-xl border border-slate-700/70 bg-[#05080d] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20"
                         value={selectedParts[slot]?.id || ''}
                         onChange={(e) => handlePartChange(slot, e.target.value)}
                       >
@@ -350,15 +350,15 @@ export default function ProductDetails() {
                 </div>
 
                 <div className="mt-5 grid gap-4 lg:grid-cols-[0.35fr_0.65fr]">
-                  <div className="rounded-2xl border border-white/10 bg-black/35 p-4">
-                    <div className="text-xs uppercase tracking-[3px] text-gray-500">Score</div>
-                    <div className="mt-3 text-5xl font-black text-emerald-300">
+                  <div className="rounded-2xl border border-slate-700/70 bg-[#050c1b]/88 p-4">
+                    <div className="text-xs uppercase tracking-[3px] text-slate-500">Score</div>
+                    <div className="mt-3 text-5xl font-black text-sky-300">
                       {bottleneckScore !== null ? `${Number(bottleneckScore).toFixed(1)}/100` : '--'}
                     </div>
-                    <div className="mt-2 text-sm text-gray-400">{calculatorStatus}</div>
+                    <div className="mt-2 text-sm text-slate-400">{calculatorStatus}</div>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-black/35 p-4">
-                    <div className="text-xs uppercase tracking-[3px] text-gray-500">Selected Parts</div>
+                  <div className="rounded-2xl border border-slate-700/70 bg-[#050c1b]/88 p-4">
+                    <div className="text-xs uppercase tracking-[3px] text-slate-500">Selected Parts</div>
                     <div className="mt-3 grid gap-2 sm:grid-cols-2">
                       {['CPU', 'GPU', 'Motherboard', 'RAM', 'PSU'].map((slot) => {
                         const part = selectedParts[slot];
